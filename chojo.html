@@ -109,6 +109,34 @@ button,input,select,textarea{font:inherit;color:inherit}
 .ledit .seg button{font-size:12px;padding:7px 4px}
 .toolbar,.lpop,.copybar,.zoombox{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lpop input{-webkit-user-select:text;user-select:text}
+.projbtn span{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.pcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;background:var(--surface-2);min-width:0}
+.pcard.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.pthumb{aspect-ratio:4/3;background:#fff;display:grid;place-items:center;position:relative;max-width:100%}
+.pthumb img{max-width:100%;max-height:100%;object-fit:contain}
+.pnow{position:absolute;left:6px;top:6px;background:var(--accent);color:var(--accent-fg);font-size:11px;border-radius:999px;padding:1px 8px}
+.pinfo{display:flex;flex-direction:column;gap:2px;padding:8px 8px 0}
+.pname{font-weight:700;background:transparent!important;border-color:transparent!important;padding:3px 4px!important}
+.pname:focus{border-color:var(--line)!important;background:var(--surface)!important}
+.pdate{font-size:11px;color:var(--muted);padding-left:4px;font-family:var(--f-mono)}
+.pact{display:flex;flex-wrap:wrap;gap:4px;padding:8px}
+.pact .btn{font-size:12px;padding:4px 8px;min-height:30px}
+.pact .btn.armed{background:#C8321F;border-color:#C8321F;color:#fff}
+.tlcard{width:min(900px,100%)}
+.tlgrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.tlprev{background:var(--bg);border-radius:8px;padding:8px;display:grid;place-items:center}
+.tlprev canvas{width:100%;height:auto;max-height:60vh;object-fit:contain;display:block;border-radius:4px;box-shadow:0 0 0 1px var(--line)}
+.tlside{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tlside input[type=range]{width:100%}
+.tlopt{display:grid;grid-template-columns:3em minmax(0,1fr);align-items:center;gap:8px;font-size:12.5px}
+.tlprog{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tlbarw{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden;min-width:120px}
+.tlbar{height:100%;width:0;background:var(--accent)}
+#tlPct{font-family:var(--f-mono);font-size:12px;min-width:3em;text-align:right}
+.tlresult{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.tlresult video{width:100%;max-height:50vh;background:#000;border-radius:8px}
+@media (max-width:700px){.tlgrid{grid-template-columns:1fr}}
 #lDel.armed{background:#C8321F;border-color:#C8321F;color:#fff}
 .zoombox{position:absolute;right:calc(10px + env(safe-area-inset-right,0px)*0);bottom:10px;display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:0 2px 8px var(--shadow);align-items:center}
 .zoombox button{border:0;background:transparent;min-width:38px;height:34px;border-radius:7px;cursor:pointer;font-size:13px}
@@ -188,6 +216,7 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
   </div>
   <div class="actions">
     <a class="btn" href="./">← 一覧</a>
+    <button class="btn projbtn" id="projBtn" title="作品の一覧"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg><span id="projName">作品</span></button>
     <button class="btn primary" id="exportBtn">書き出し・保存</button>
   </div>
 </header>
@@ -321,11 +350,43 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
       <button data-set="exLook" data-val="split">色分け</button><button data-set="exLook" data-val="mono">黒一色</button>
     </div>
     <label class="chk"><input type="checkbox" data-bind="exGuide">ガイド文字も含める</label>
+    <div class="btns"><button class="btn" id="tlFromExport">この作品のタイムラプスを作る</button></div>
     <p class="desc">画像は長押し（PC は右クリック）で保存できます。</p>
     <h3>作品データ</h3>
-    <p class="desc">作業はこのブラウザに自動保存されます。別の端末へ移すときは、データをコピーして貼り付け、読み込んでください。</p>
+    <p class="desc">作業はこの端末に自動保存されます。別の端末へ移すときは、データをコピーして移動先で貼り付け、読み込んでください。制作過程の記録も一緒に移るので、移動先でもタイムラプスを作れます。</p>
     <textarea id="mJson" spellcheck="false" aria-label="作品データ"></textarea>
-    <div class="btns"><button class="btn" id="copyJson">データをコピー</button><button class="btn" id="loadJson">貼り付けたデータを読み込む</button></div>
+    <div class="btns"><button class="btn" id="copyJson">データをコピー</button><button class="btn" id="loadJson">貼り付けたデータを新しい作品として読み込む</button></div>
+  </div>
+</div>
+<div class="modal" id="projModal" hidden>
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="row" style="justify-content:space-between"><h2 id="pTitle">作品</h2><div class="btns"><button class="btn primary" id="pNew">＋ 新しい作品</button><button class="btn" id="pClose">閉じる</button></div></div>
+    <p class="desc">作品はこの端末に保存されます。描いた過程も作品ごとに記録され、「タイムラプス」から動画にできます。</p>
+    <div class="plist" id="pList"></div>
+  </div>
+</div>
+<div class="modal" id="tlModal" hidden>
+  <div class="mcard tlcard" role="dialog" aria-modal="true" aria-labelledby="tlTitle">
+    <div class="row" style="justify-content:space-between"><h2 id="tlTitle">タイムラプス</h2><button class="btn" id="tlClose">閉じる</button></div>
+    <div class="tlgrid">
+      <div class="tlprev"><canvas id="tlCv" width="1080" height="1080"></canvas></div>
+      <div class="tlside">
+        <p class="desc" id="tlInfo"></p>
+        <label class="desc" for="tlScrub">途中を見る</label>
+        <input type="range" id="tlScrub" min="0" max="0" step="1" value="0">
+        <div class="tlopt"><span>長さ</span><div class="seg"><button data-tl="dur:10">10秒</button><button data-tl="dur:15">15秒</button><button data-tl="dur:30">30秒</button></div></div>
+        <div class="tlopt"><span>形</span><div class="seg"><button data-tl="shape:sq">正方形</button><button data-tl="shape:tall">縦長 4:5</button></div></div>
+        <div class="tlopt"><span>色</span><div class="seg"><button data-tl="look:split">色分け</button><button data-tl="look:mono">黒一色</button></div></div>
+        <label class="chk"><input type="checkbox" id="tlPencil">鉛筆レイヤー（下書き）も映す</label>
+        <button class="btn primary" id="tlMake">動画を作る</button>
+        <div class="tlprog" id="tlProg" hidden><div class="tlbarw"><div class="tlbar" id="tlBar"></div></div><span id="tlPct">0%</span><p class="desc">動画の長さと同じだけ時間がかかります。終わるまで画面を切り替えないでください。</p></div>
+      </div>
+    </div>
+    <div class="tlresult" id="tlResult" hidden>
+      <video id="tlVideo" controls playsinline muted></video>
+      <div class="btns" id="tlSaveBtns"><button class="btn primary" id="tlShare">写真に保存・共有</button><button class="btn" id="tlDownload">ファイルとして保存</button></div>
+      <p class="desc" id="tlFramedNote" hidden>claude.ai 上では動画を保存できません。iPad のアプリ版（ホーム画面のアイコン）で同じ操作をすると保存できます。</p>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -341,7 +402,7 @@ const FONTS={
   dela:{label:'デラゴシック',css:p=>`400 ${p}px "Dela Gothic One", sans-serif`},
   kaku:{label:'角ゴシック 太',css:p=>`700 ${p}px "Zen Kaku Gothic New", sans-serif`},
 };
-const S={mode:'rot',count:2,trans:{x:-180,y:0,dx:180,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},
+const S={sidNext:1,mode:'rot',count:2,trans:{x:-180,y:0,dx:180,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},
   glide:{x:0,y:0,ang:0,shift:160},drawOn:0,tool:'pen',penSize:22,eraseSize:40,pressure:true,look:'split',grid:true,snap:true,showAxis:true,penOnly:false,
   guide:{text:'',font:'sans',size:360,x:0,y:0,alpha:.3,show:true},exLook:'split',exGuide:false,
   layers:[],cur:0};
@@ -361,13 +422,14 @@ function inv(m){const[a,b,c,d,e,f]=m,t=a*d-b*c;return[d/t,-b/t,-c/t,a/t,(c*f-d*e
 const ap=(m,x,y)=>[m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]];
 const rad=d=>d*Math.PI/180;
 const angStep=()=>S.rot.auto?360/S.count:S.rot.angle;
-function M(k){
-  if(S.mode==='trans')return[1,0,0,1,k*S.trans.dx,k*S.trans.dy];
-  if(S.mode==='rot'){const t=rad(k*angStep()),c=Math.cos(t),s=Math.sin(t),{cx,cy}=S.rot;return[c,s,-s,c,cx-c*cx+s*cy,cy-s*cx-c*cy];}
-  const g=S.glide,f=rad(g.ang),ux=Math.cos(f),uy=Math.sin(f);let m=[1,0,0,1,0,0];
+function Mp(k,P){
+  if(P.mode==='trans')return[1,0,0,1,k*P.trans.dx,k*P.trans.dy];
+  if(P.mode==='rot'){const t=rad(k*(P.rot.auto?360/P.count:P.rot.angle)),c=Math.cos(t),s=Math.sin(t),{cx,cy}=P.rot;return[c,s,-s,c,cx-c*cx+s*cy,cy-s*cx-c*cy];}
+  const g=P.glide,f=rad(g.ang),ux=Math.cos(f),uy=Math.sin(f);let m=[1,0,0,1,0,0];
   if(k%2){const c2=Math.cos(2*f),s2=Math.sin(2*f);m=[c2,s2,s2,-c2,g.x-c2*g.x-s2*g.y,g.y-s2*g.x+c2*g.y];}
   m[4]+=k*g.shift*ux;m[5]+=k*g.shift*uy;return m;
 }
+const M=k=>Mp(k,S);
 const Vm=()=>[V.z,0,0,V.z,V.ox,V.oy];
 const s2w=(x,y)=>[(x-V.ox)/V.z,(y-V.oy)/V.z];
 const w2s=(x,y)=>[x*V.z+V.ox,y*V.z+V.oy];
@@ -623,7 +685,7 @@ cv.addEventListener('pointerdown',e=>{
   if(panReq||S.tool==='axis'||e.button===2){act={type:'pan',id:e.pointerId,sx,sy,ox:V.ox,oy:V.oy};return;}
   const Lr=curL();
   if(!Lr.show){Lr.show=true;toast(`隠れていた「${Lr.name}」を表示しました。`);layersChanged();}
-  const rs=redo.slice();pushUndo();const list=Lr.strokes,st={t:S.tool==='erase'?'e':'p',w:S[sizeKey()],pr:S.pressure&&e.pointerType==='pen',p:[]};
+  const rs=redo.slice();pushUndo();const list=Lr.strokes,st={id:S.sidNext++,t:S.tool==='erase'?'e':'p',w:S[sizeKey()],pr:S.pressure&&e.pointerType==='pen',p:[]};
   if(!Lr.rep)st.ws=true;
   list.push(st);addPt(e,st);act={type:'draw',id:e.pointerId,st,list,rs};$('#sampleNote').hidden=true;draw();
 });
@@ -703,7 +765,7 @@ document.addEventListener('keydown',e=>{
   else if(k==='['){S[sizeKey()]=Math.max(2,S[sizeKey()]-2);}
   else if(k===']'){S[sizeKey()]=Math.min(120,S[sizeKey()]+2);}
   else if(/^[1-9]$/.test(k)&&+k<=S.count){S.drawOn=+k-1;}
-  else if(k==='escape'){$('#modal').hidden=true;$('#side').classList.remove('open');togglePop(false);return;}
+  else if(k==='escape'){$('#modal').hidden=true;$('#projModal').hidden=true;if(!tlBusy)$('#tlModal').hidden=true;$('#side').classList.remove('open');togglePop(false);return;}
   else return;
   syncUI();draw();save();
 });
@@ -713,26 +775,27 @@ $('#sideClose').onclick=()=>$('#side').classList.remove('open');
 new ResizeObserver(()=>draw()).observe(board);
 
 /* ---------- export / data ---------- */
-function buildExport(){
-  const b=allBox(false)||(S.exGuide?allBox(true):null);const c=document.createElement('canvas');
-  if(!b){c.width=c.height=200;}
-  const pad=40,sc=b?Math.min(4,1600/Math.max(b.w+pad*2,b.h+pad*2)):1;
-  if(b){c.width=Math.ceil((b.w+pad*2)*sc);c.height=Math.ceil((b.h+pad*2)*sc);}
+function makeImage(maxPx,look,withGuide){
+  const b=allBox(false)||(withGuide?allBox(true):null);const c=document.createElement('canvas');
+  const pad=40,sc=b?Math.min(4,maxPx/Math.max(b.w+pad*2,b.h+pad*2)):1;
+  if(b){c.width=Math.max(1,Math.ceil((b.w+pad*2)*sc));c.height=Math.max(1,Math.ceil((b.h+pad*2)*sc));}else{c.width=c.height=Math.min(200,maxPx);}
   const x=c.getContext('2d');x.fillStyle='#FFFFFF';x.fillRect(0,0,c.width,c.height);
   if(b){
     const base=[sc,0,0,sc,(pad-b.x)*sc,(pad-b.y)*sc];
-    if(S.exGuide&&S.guide.text){x.setTransform(...base);x.globalAlpha=.25;x.fillStyle=GUIDE;drawGuide(x,'fill');x.globalAlpha=1;}
+    if(withGuide&&S.guide.text){x.setTransform(...base);x.globalAlpha=.25;x.fillStyle=GUIDE;drawGuide(x,'fill');x.globalAlpha=1;}
     for(const l of S.layers){
       if(!l.show||l.style!=='ink')continue;const m=build(l.strokes,sc*1.5);if(!m)continue;
-      if(l.rep)for(let k=0;k<S.count;k++){x.setTransform(...mul(base,M(k)));x.globalAlpha=l.alpha*(S.exLook==='split'?.92:1);x.drawImage(tinted(m,copyColor(k,S.exLook)),m.x,m.y,m.w,m.h);}
-      else{x.setTransform(...base);x.globalAlpha=l.alpha;x.drawImage(tinted(m,S.exLook==='mono'?MONO:PAL[0]),m.x,m.y,m.w,m.h);}
+      if(l.rep)for(let k=0;k<S.count;k++){x.setTransform(...mul(base,M(k)));x.globalAlpha=l.alpha*(look==='split'?.92:1);x.drawImage(tinted(m,copyColor(k,look)),m.x,m.y,m.w,m.h);}
+      else{x.setTransform(...base);x.globalAlpha=l.alpha;x.drawImage(tinted(m,look==='mono'?MONO:PAL[0]),m.x,m.y,m.w,m.h);}
     }
     x.globalAlpha=1;
   }
-  $('#mImg').src=c.toDataURL('image/png');
+  return c;
 }
-const PERSIST=['layers','cur','penSize','eraseSize','mode','count','trans','rot','glide','drawOn','tool','pressure','look','grid','snap','showAxis','penOnly','guide','exLook','exGuide'];
-function dataJSON(){const o={app:'chojo',v:2};PERSIST.forEach(k=>o[k]=S[k]);o.view={...V};return JSON.stringify(o);}
+function buildExport(){$('#mImg').src=makeImage(1600,S.exLook,S.exGuide).toDataURL('image/png');}
+const PERSIST=['layers','cur','penSize','eraseSize','mode','count','trans','rot','glide','drawOn','tool','pressure','look','grid','snap','showAxis','penOnly','guide','exLook','exGuide','sidNext'];
+function dataObj(){const o={app:'chojo',v:2};PERSIST.forEach(k=>o[k]=S[k]);o.view={...V};return JSON.parse(JSON.stringify(o));}
+const dataJSON=()=>JSON.stringify(dataObj());
 function applyData(o){
   if(!o||o.app!=='chojo')throw new Error('bad');
   if(!Array.isArray(o.layers)){ // 旧形式（本線＋下書き）からの引き継ぎ
@@ -745,31 +808,256 @@ function applyData(o){
   PERSIST.forEach(k=>{if(k in o){if(S[k]&&typeof S[k]==='object'&&!Array.isArray(S[k]))Object.assign(S[k],o[k]);else S[k]=o[k];}});
   if(o.view&&o.view.z){V.z=o.view.z;V.ox=o.view.ox;V.oy=o.view.oy;}
   LID=Math.max(LID,...S.layers.map(l=>l.id+1));if(!S.layers.some(l=>l.id===S.cur))S.cur=S.layers[S.layers.length-1].id;
-  dirty=true;
+  // 線の通し番号（タイムラプスの記録で線を見分けるため）
+  let mx=0;for(const l of S.layers)for(const st of l.strokes)if(st.id)mx=Math.max(mx,st.id);
+  let nx=Math.max(S.sidNext||1,mx+1);for(const l of S.layers)for(const st of l.strokes)if(!st.id)st.id=nx++;
+  S.sidNext=nx;dirty=true;
 }
-$('#exportBtn').onclick=()=>{buildExport();$('#mJson').value=dataJSON();$('#modal').hidden=false;syncUI();};
+
+/* ---------- 保存先（IndexedDB。使えないときはこの画面を開いている間だけ保持） ---------- */
+const MEM={projects:new Map(),steps:[]};let idbOK=false,DBH=null;
+function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open('chojo-kobo',1);
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('projects'))d.createObjectStore('projects',{keyPath:'id'});if(!d.objectStoreNames.contains('steps'))d.createObjectStore('steps',{keyPath:['pid','n']});};
+  r.onsuccess=()=>{DBH=r.result;idbOK=true;res(true);};r.onerror=()=>res(false);r.onblocked=()=>res(false);}catch(_){res(false);}});}
+function tx(name,mode,fn){return new Promise((res,rej)=>{try{const t=DBH.transaction(name,mode);let out;const r=fn(t.objectStore(name));if(r)r.onsuccess=()=>{out=r.result;};
+  t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error);}catch(e){rej(e);}});}
+const prange=pid=>IDBKeyRange.bound([pid,0],[pid,Number.MAX_SAFE_INTEGER]);
+const DB={
+  putProject:p=>idbOK?tx('projects','readwrite',s=>s.put(p)):(MEM.projects.set(p.id,structuredClone(p)),Promise.resolve()),
+  allProjects:()=>idbOK?tx('projects','readonly',s=>s.getAll()):Promise.resolve([...MEM.projects.values()].map(p=>structuredClone(p))),
+  delProject:id=>idbOK?Promise.all([tx('projects','readwrite',s=>s.delete(id)),tx('steps','readwrite',s=>s.delete(prange(id)))]):(MEM.projects.delete(id),MEM.steps=MEM.steps.filter(x=>x.pid!==id),Promise.resolve()),
+  putStep:x=>idbOK?tx('steps','readwrite',s=>s.put(x)):(MEM.steps.push(structuredClone(x)),Promise.resolve()),
+  steps:pid=>idbOK?tx('steps','readonly',s=>s.getAll(prange(pid))):Promise.resolve(MEM.steps.filter(x=>x.pid===pid)),
+  lastStep:pid=>idbOK?new Promise(res=>{try{const r=DBH.transaction('steps','readonly').objectStore('steps').openCursor(prange(pid),'prev');r.onsuccess=()=>res(r.result?r.result.value:null);r.onerror=()=>res(null);}catch(_){res(null);}})
+    :Promise.resolve(MEM.steps.filter(x=>x.pid===pid).pop()||null),
+};
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(_){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(_){}};
+
+/* ---------- 作品と記録 ---------- */
+let proj=null,known=new Set(),stepN=0,lastStruct='';
+function structure(){return{L:S.layers.map(l=>({id:l.id,n:l.name,y:l.style,r:l.rep?1:0,v:l.show?1:0,a:l.alpha,s:l.strokes.map(st=>st.id)})),
+  P:{mode:S.mode,count:S.count,trans:{...S.trans},rot:{...S.rot},glide:{...S.glide}}};}
+function record(){
+  if(!proj)return;const s=structure(),js=JSON.stringify(s);if(js===lastStruct)return;
+  const add=[];for(const l of S.layers)for(const st of l.strokes)if(!known.has(st.id)){known.add(st.id);add.push(st);}
+  lastStruct=js;DB.putStep({pid:proj.id,n:stepN++,t:Date.now(),add,s}).catch(()=>{});
+}
+let st=0;
+function save(){clearTimeout(st);st=setTimeout(flush,400);}
+function flush(){
+  clearTimeout(st);if(!proj)return Promise.resolve();
+  if(act&&act.type==='draw'){save();return Promise.resolve();} // 描いている途中の線は記録しない
+  record();proj.data=dataObj();proj.updated=Date.now();
+  try{proj.thumb=makeImage(240,'split',false).toDataURL('image/jpeg',.82);}catch(_){}
+  lsSet('chojo-current',proj.id);
+  return DB.putProject(proj).catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flush();});
+window.addEventListener('pagehide',()=>flush());
+const newId=()=>'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function blankData(){
+  const sk=newLayer('下書き','pencil',true),ink=newLayer('本線','ink',true);
+  return{app:'chojo',v:2,layers:[sk,ink],cur:ink.id,mode:'rot',count:2,trans:{x:-180,y:0,dx:180,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},
+    glide:{x:0,y:0,ang:0,shift:160},drawOn:0,guide:{...S.guide,text:''},sidNext:1};
+}
+async function openProject(p){
+  await flush();proj=p;S.layers=[];S.sidNext=1;applyData(structuredClone(p.data));
+  undo.length=0;redo.length=0;updUndo();
+  const last=await DB.lastStep(p.id);stepN=last?last.n+1:0;lastStruct=last?JSON.stringify(last.s):'';
+  known=last?new Set(S.layers.flatMap(l=>l.strokes.map(s=>s.id))):new Set(); // 記録がまだない作品は、今ある線も最初の記録に含める
+  $('#projName').textContent=p.name;lsSet('chojo-current',p.id);
+  syncUI();if(p.data.view&&p.data.view.z)draw();else fit();
+  if(!last){record();}
+  await DB.putProject(p).catch(()=>{});
+}
+async function newProject(name,data,steps){
+  await flush();
+  const p={id:newId(),name,created:Date.now(),updated:Date.now(),data:data||blankData(),thumb:''};
+  await DB.putProject(p);
+  if(steps&&steps.length)for(let i=0;i<steps.length;i++)await DB.putStep({pid:p.id,n:i,t:steps[i].t||Date.now(),add:steps[i].add||[],s:steps[i].s});
+  await openProject(p);return p;
+}
+
+/* ---------- 作品一覧 ---------- */
+let plist=[];const delArmP={};
+const fmtDate=t=>{const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
+const escH=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function showProjects(){
+  await flush();plist=(await DB.allProjects().catch(()=>[])).sort((a,b)=>b.updated-a.updated);
+  $('#pList').innerHTML=plist.map(p=>{const cur=proj&&p.id===proj.id;return`<div class="pcard${cur?' cur':''}" data-pid="${p.id}">
+    <div class="pthumb">${p.thumb?`<img src="${p.thumb}" alt="">`:''}${cur?'<span class="pnow">編集中</span>':''}</div>
+    <div class="pinfo"><input class="pname" data-rename="${p.id}" value="${escH(p.name)}" aria-label="作品名" maxlength="30"><span class="pdate">更新 ${fmtDate(p.updated)}</span></div>
+    <div class="pact">${cur?'':`<button class="btn primary" data-pa="open">開く</button>`}<button class="btn" data-pa="tl">タイムラプス</button><button class="btn" data-pa="dup">複製</button><button class="btn" data-pa="del">削除</button></div></div>`;}).join('');
+  $('#projModal').hidden=false;
+}
+$('#projBtn').onclick=showProjects;
+$('#pClose').onclick=()=>$('#projModal').hidden=true;
+$('#projModal').addEventListener('click',e=>{if(e.target.id==='projModal')$('#projModal').hidden=true;});
+$('#pNew').onclick=async()=>{await newProject(`作品${plist.length+1}`);$('#projModal').hidden=true;$('#sampleNote').hidden=true;toast('新しい作品を作りました。');};
+$('#pList').addEventListener('change',e=>{
+  const i=e.target.closest('[data-rename]');if(!i)return;const p=plist.find(x=>x.id===i.dataset.rename);if(!p)return;
+  p.name=i.value.trim()||'名前なし';if(proj&&p.id===proj.id){proj.name=p.name;$('#projName').textContent=p.name;flush();}else DB.putProject(p);
+});
+$('#pList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pa]');if(!b)return;const p=plist.find(x=>x.id===b.closest('[data-pid]').dataset.pid);if(!p)return;
+  const a=b.dataset.pa;
+  if(a==='open'){await openProject(p);$('#projModal').hidden=true;$('#sampleNote').hidden=true;toast(`「${p.name}」を開きました。`);}
+  else if(a==='tl'){$('#projModal').hidden=true;openTL(proj&&p.id===proj.id?proj:p);}
+  else if(a==='dup'){const src=proj&&p.id===proj.id?dataObj():structuredClone(p.data);await newProject(`${p.name} のコピー`,src);await showProjects();toast('複製しました。過程の記録は複製した時点から始まります。',4200);}
+  else if(a==='del'){
+    if(!delArmP[p.id]){b.classList.add('armed');b.textContent='もう一度押すと削除';delArmP[p.id]=setTimeout(()=>{delete delArmP[p.id];b.classList.remove('armed');b.textContent='削除';},2500);return;}
+    clearTimeout(delArmP[p.id]);delete delArmP[p.id];
+    const wasCur=proj&&p.id===proj.id;if(wasCur)proj=null;await DB.delProject(p.id);
+    if(wasCur){const rest=plist.filter(x=>x.id!==p.id).sort((a,b)=>b.updated-a.updated);if(rest.length)await openProject(rest[0]);else await newProject('作品1');}
+    await showProjects();toast(`「${p.name}」を削除しました。`);
+  }
+});
+
+/* ---------- タイムラプス ---------- */
+const TLO={dur:15,shape:'sq',look:'split',pencil:true};let TL=null,tlBlob=null,tlURL='',tlBusy=false;
+function makeTL(steps,W,H){
+  const pool=new Map();for(const s of steps)for(const st of s.add||[])pool.set(st.id,st);
+  const frames=steps.map(s=>s.s),sbox=new Map();for(const[id,st]of pool){const b=boxOf([st]);if(b)sbox.set(id,b);}
+  const uni=(ids,box)=>{let b=box||null;for(const id of ids){const q=sbox.get(id);if(!q)continue;if(!b)b={x0:q.x,y0:q.y,x1:q.x+q.w,y1:q.y+q.h};else{b.x0=Math.min(b.x0,q.x);b.y0=Math.min(b.y0,q.y);b.x1=Math.max(b.x1,q.x+q.w);b.y1=Math.max(b.y1,q.y+q.h);}}return b;};
+  const use=l=>l.v&&l.s.length&&(TLO.pencil||l.y!=='pencil');
+  function frameBox(f){let b=null;const ext=(x,y)=>{if(!b)b={x0:x,y0:y,x1:x,y1:y};else{b.x0=Math.min(b.x0,x);b.y0=Math.min(b.y0,y);b.x1=Math.max(b.x1,x);b.y1=Math.max(b.y1,y);}};
+    for(const l of f.L){if(!use(l))continue;const q=uni(l.s);if(!q)continue;const cs=[[q.x0,q.y0],[q.x1,q.y0],[q.x0,q.y1],[q.x1,q.y1]];
+      if(l.r)for(let k=0;k<f.P.count;k++)for(const c of cs)ext(...ap(Mp(k,f.P),c[0],c[1]));else for(const c of cs)ext(c[0],c[1]);}
+    return b;}
+  let cam=null;for(let i=frames.length-1;i>=0&&!cam;i--)cam=frameBox(frames[i]);
+  if(!cam)cam={x0:-200,y0:-200,x1:200,y1:200};
+  const cw=Math.max(40,cam.x1-cam.x0),ch=Math.max(40,cam.y1-cam.y0),sc=Math.min(W*.84/cw,H*.84/ch);
+  const base=[sc,0,0,sc,W/2-sc*(cam.x0+cw/2),H/2-sc*(cam.y0+ch/2)];
+  const mb=uni([...pool.keys()])||{x0:-100,y0:-100,x1:100,y1:100},MB={x:mb.x0,y:mb.y0,w:Math.max(1,mb.x1-mb.x0),h:Math.max(1,mb.y1-mb.y0)};
+  const lsc=Math.max(.05,Math.min(sc*1.15,2048/Math.max(MB.w,MB.h)));
+  const lcs=new Map(),scratch=document.createElement('canvas');scratch.width=W;scratch.height=H;const sx=scratch.getContext('2d');
+  function layerCanvas(l){
+    let e=lcs.get(l.id);
+    if(!e){const c=document.createElement('canvas');c.width=Math.ceil(MB.w*lsc);c.height=Math.ceil(MB.h*lsc);e={c,x:c.getContext('2d'),sids:[]};lcs.set(l.id,e);}
+    let pre=e.sids.length<=l.s.length;for(let i=0;pre&&i<e.sids.length;i++)if(e.sids[i]!==l.s[i])pre=false;
+    if(!pre){e.x.setTransform(1,0,0,1,0,0);e.x.globalCompositeOperation='source-over';e.x.clearRect(0,0,e.c.width,e.c.height);e.sids=[];}
+    if(e.sids.length<l.s.length){e.x.setTransform(lsc,0,0,lsc,-MB.x*lsc,-MB.y*lsc);for(let i=e.sids.length;i<l.s.length;i++){const s=pool.get(l.s[i]);if(s)drawStroke(e.x,s);}e.sids=l.s.slice();}
+    return e;
+  }
+  function paint(x,e,m,col,alpha){
+    sx.setTransform(1,0,0,1,0,0);sx.globalCompositeOperation='source-over';sx.globalAlpha=1;sx.clearRect(0,0,W,H);
+    sx.setTransform(...m);sx.drawImage(e.c,MB.x,MB.y,MB.w,MB.h);
+    sx.setTransform(1,0,0,1,0,0);sx.globalCompositeOperation='source-in';sx.fillStyle=col;sx.fillRect(0,0,W,H);
+    x.setTransform(1,0,0,1,0,0);x.globalAlpha=alpha;x.drawImage(scratch,0,0);x.globalAlpha=1;
+  }
+  function drawFrame(x,i){
+    const f=frames[Math.max(0,Math.min(frames.length-1,i))];
+    x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='source-over';x.globalAlpha=1;x.fillStyle=PAPER;x.fillRect(0,0,W,H);
+    for(const l of f.L){
+      if(!use(l))continue;const e=layerCanvas(l),pencil=l.y==='pencil';
+      if(l.r)for(let k=0;k<f.P.count;k++)paint(x,e,mul(base,Mp(k,f.P)),pencil?SKC:(TLO.look==='mono'?MONO:PAL[k%PAL.length]),l.a*(pencil?1:(TLO.look==='split'?.92:1)));
+      else paint(x,e,base,pencil?SKC:(TLO.look==='mono'?MONO:PAL[0]),l.a);
+    }
+  }
+  return{n:frames.length,drawFrame,first:steps[0]&&steps[0].t,last:steps.length&&steps[steps.length-1].t};
+}
+const tlSize=()=>TLO.shape==='sq'?[1080,1080]:[1080,1350];
+async function openTL(p){
+  if(tlBusy)return;if(proj&&p.id===proj.id)await flush();
+  $('#tlTitle').textContent=`タイムラプス「${p.name}」`;$('#tlModal').hidden=false;$('#tlInfo').textContent='記録を読み込んでいます…';
+  resetTLResult();
+  const steps=(await DB.steps(p.id).catch(()=>[])).sort((a,b)=>a.n-b.n);
+  TL={p,steps,r:null};buildTL();
+}
+function buildTL(){
+  if(!TL)return;const[W,H]=tlSize(),c=$('#tlCv');c.width=W;c.height=H;
+  TL.r=makeTL(TL.steps,W,H);const n=TL.r.n;
+  $('#tlScrub').max=Math.max(0,n-1);$('#tlScrub').value=Math.max(0,n-1);
+  const ok=n>=2;$('#tlMake').disabled=!ok;
+  $('#tlInfo').textContent=ok?`記録 ${n} 段階（${fmtDate(TL.r.first)} 〜 ${fmtDate(TL.r.last)}）`:'まだ記録が少ないため、タイムラプスにできません。描き進めると、変更のたびに記録されます。';
+  drawTLPreview();syncTLSeg();
+}
+function drawTLPreview(){if(TL&&TL.r&&TL.r.n)TL.r.drawFrame($('#tlCv').getContext('2d'),+$('#tlScrub').value);}
+$('#tlScrub').addEventListener('input',drawTLPreview);
+function syncTLSeg(){document.querySelectorAll('[data-tl]').forEach(b=>{const[k,v]=b.dataset.tl.split(':');b.setAttribute('aria-pressed',String(TLO[k])===v);});$('#tlPencil').checked=TLO.pencil;}
+document.querySelectorAll('[data-tl]').forEach(b=>b.onclick=()=>{if(tlBusy)return;const[k,v]=b.dataset.tl.split(':');TLO[k]=k==='dur'?+v:v;resetTLResult();buildTL();});
+$('#tlPencil').onchange=e=>{if(tlBusy)return;TLO.pencil=e.target.checked;resetTLResult();buildTL();};
+function resetTLResult(){if(tlURL)URL.revokeObjectURL(tlURL);tlURL='';tlBlob=null;$('#tlResult').hidden=true;$('#tlVideo').removeAttribute('src');$('#tlProg').hidden=true;}
+$('#tlClose').onclick=()=>{if(tlBusy){toast('動画を作っている途中です。終わるまでお待ちください。');return;}$('#tlModal').hidden=true;};
+const MIMES=['video/mp4;codecs=avc1.42E01E','video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+$('#tlMake').onclick=async()=>{
+  if(!TL||!TL.r||tlBusy)return;
+  const mime=window.MediaRecorder&&MediaRecorder.isTypeSupported&&MIMES.find(m=>MediaRecorder.isTypeSupported(m));
+  const c=$('#tlCv');
+  if(!mime||!c.captureStream){toast('このブラウザでは動画を作れません。Safari か Chrome の新しい版で開いてください。',5000);return;}
+  tlBusy=true;resetTLResult();$('#tlMake').disabled=true;$('#tlProg').hidden=false;
+  const fps=30,N=Math.round(fps*TLO.dur),hold=Math.round(fps*1.5),play=N-hold,n=TL.r.n,x=c.getContext('2d');
+  const idx=f=>f>=play?n-1:Math.min(n-1,Math.floor(f*n/play));
+  const stream=c.captureStream(fps),chunks=[];let rec;
+  try{rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8e6});}catch(_){rec=new MediaRecorder(stream);}
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  const done=new Promise(res=>rec.onstop=res);
+  TL.r.drawFrame(x,0);rec.start(250);
+  let aborted=false;const onHide=()=>{if(document.hidden)aborted=true;};document.addEventListener('visibilitychange',onHide);
+  const t0=performance.now();
+  await new Promise(res=>{function tick(){
+    const f=Math.floor((performance.now()-t0)/1000*fps);
+    if(aborted||f>=N){res();return;}
+    TL.r.drawFrame(x,idx(f));$('#tlBar').style.width=(f/N*100).toFixed(1)+'%';$('#tlPct').textContent=`${Math.floor(f/N*100)}%`;
+    requestAnimationFrame(tick);}requestAnimationFrame(tick);});
+  TL.r.drawFrame(x,n-1);await new Promise(r=>setTimeout(r,200));rec.stop();await done;
+  document.removeEventListener('visibilitychange',onHide);stream.getTracks().forEach(t=>t.stop());
+  tlBusy=false;$('#tlMake').disabled=false;$('#tlProg').hidden=true;
+  if(aborted){toast('画面が切り替わったため中断しました。動画を作り終えるまで、このまま画面を開いておいてください。',5200);drawTLPreview();return;}
+  const type=mime.split(';')[0];tlBlob=new Blob(chunks,{type});tlURL=URL.createObjectURL(tlBlob);
+  $('#tlVideo').src=tlURL;$('#tlResult').hidden=false;drawTLPreview();
+  const framed=(()=>{try{return window.self!==window.top;}catch(_){return true;}})();
+  $('#tlSaveBtns').hidden=framed;$('#tlFramedNote').hidden=!framed;
+  toast('動画ができました。');
+};
+const tlName=()=>`${(TL&&TL.p.name||'作品').replace(/[\\/:*?"<>|]/g,'_')}_タイムラプス.${tlBlob&&tlBlob.type.includes('mp4')?'mp4':'webm'}`;
+$('#tlShare').onclick=async()=>{
+  if(!tlBlob)return;const file=new File([tlBlob],tlName(),{type:tlBlob.type});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  toast('この端末では共有できませんでした。「ファイルとして保存」を試してください。',4200);
+};
+$('#tlDownload').onclick=()=>{if(!tlURL)return;const a=document.createElement('a');a.href=tlURL;a.download=tlName();document.body.appendChild(a);a.click();a.remove();};
+$('#tlFromExport').onclick=()=>{$('#modal').hidden=true;if(proj)openTL(proj);};
+
+/* ---------- 書き出しモーダル ---------- */
+async function exportText(){const o=dataObj();o.name=proj?proj.name:'作品';o.steps=proj?(await DB.steps(proj.id).catch(()=>[])).sort((a,b)=>a.n-b.n).map(({t,add,s})=>({t,add,s})):[];return JSON.stringify(o);}
+$('#exportBtn').onclick=async()=>{buildExport();$('#modal').hidden=false;syncUI();await flush();$('#mJson').value=await exportText();};
 $('#mClose').onclick=()=>$('#modal').hidden=true;
 $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').hidden=true;});
-$('#copyJson').onclick=async()=>{const t=$('#mJson');t.value=dataJSON();try{await navigator.clipboard.writeText(t.value);toast('作品データをコピーしました。');}catch(_){t.focus();t.select();toast('自動でコピーできませんでした。選択された文字をコピーしてください。');}};
-$('#loadJson').onclick=()=>{try{const o=JSON.parse($('#mJson').value);pushUndo();applyData(o);syncUI();buildExport();fit();toast('作品データを読み込みました。');}catch(_){toast('読み込めませんでした。書き出したデータを丸ごと貼り付けてください。');}};
-let st=0;function save(){clearTimeout(st);st=setTimeout(()=>{try{localStorage.setItem(KEY,dataJSON());}catch(_){}},400);}
+$('#copyJson').onclick=async()=>{const t=$('#mJson');t.value=await exportText();try{await navigator.clipboard.writeText(t.value);toast('作品データをコピーしました。');}catch(_){t.focus();t.select();toast('自動でコピーできませんでした。選択された文字をコピーしてください。');}};
+$('#loadJson').onclick=async()=>{
+  let o;try{o=JSON.parse($('#mJson').value);if(!o||o.app!=='chojo')throw 0;}catch(_){toast('読み込めませんでした。書き出したデータを丸ごと貼り付けてください。');return;}
+  const name=o.name||'読み込んだ作品',steps=Array.isArray(o.steps)?o.steps:[];delete o.name;delete o.steps;
+  await flush();const prev=proj;proj=null;
+  try{S.layers=[];applyData(structuredClone(o));o=dataObj();}catch(_){toast('読み込めませんでした。データが壊れている可能性があります。');if(prev)await openProject(prev);return;}
+  await newProject(name,o,steps);$('#modal').hidden=true;toast(`「${name}」として読み込みました。`);
+};
 let tt=0;function toast(m,ms=3400){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,ms);}
 $('#noteClose').onclick=()=>$('#sampleNote').hidden=true;
 $('#gFont').innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
 
 /* ---------- boot ---------- */
-let had=false;S.layers=[];try{const s=localStorage.getItem(KEY);if(s){applyData(JSON.parse(s));had=true;}}catch(_){}
-if(!had){
-  const L=(pts)=>({t:'p',w:24,pr:false,p:pts.map(([x,y])=>[x,y,.5])});
-  const sk=newLayer('下書き','pencil',true),ink=newLayer('本線','ink',true);
-  ink.strokes=[L([[-150,-130],[110,-130],[110,-12],[-40,-12]]),L([[-150,-130],[-150,-70]])];
-  S.layers=[sk,ink];S.cur=ink.id;
-  $('#sampleNote').hidden=false;
-}
-syncUI();updUndo();
-requestAnimationFrame(()=>{if(had&&V.z!==1||had&&(V.ox||V.oy))draw();else fit();});
+{const ink=newLayer('本線','ink',true);S.layers=[ink];S.cur=ink.id;}
+syncUI();updUndo();requestAnimationFrame(fit);
+(async()=>{
+  await idbOpen();
+  const list=await DB.allProjects().catch(()=>[]);
+  if(list.length){const cid=lsGet('chojo-current');await openProject(list.find(p=>p.id===cid)||list.sort((a,b)=>b.updated-a.updated)[0]);}
+  else{
+    let data=null;const old=lsGet(KEY);
+    if(old){try{S.layers=[];applyData(JSON.parse(old));data=dataObj();}catch(_){data=null;}}
+    if(!data){
+      const L=(pts)=>({t:'p',w:24,pr:false,p:pts.map(([x,y])=>[x,y,.5])});
+      data=blankData();data.layers[1].strokes=[L([[-150,-130],[110,-130],[110,-12],[-40,-12]]),L([[-150,-130],[-150,-70]])];
+      $('#sampleNote').hidden=false;
+    }
+    await newProject('作品1',data);
+  }
+})();
 if(document.fonts)document.fonts.ready.then(draw);
 })();
+
 </script>
 
 <script>
