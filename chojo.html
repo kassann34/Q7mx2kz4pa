@@ -77,10 +77,37 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bdot{width:26px;height:26px;display:grid;place-items:center}
 .bdot span{display:block;border-radius:50%;background:var(--fg)}
 .settingsBtn{display:none}
+.blabel{font-size:11px;min-width:3.6em;color:var(--fg)}
+.bsize output{font-family:var(--f-mono);font-size:11px;min-width:2em;text-align:right;font-variant-numeric:tabular-nums}
+.lbtn{min-width:72px;max-width:120px}
+.lbtn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copybar{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 250px);display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:5px 8px;box-shadow:0 2px 8px var(--shadow)}
+.copybar.off{opacity:.55}
+.cblabel{font-size:10.5px;line-height:1.2;color:var(--muted);flex:none}
+.cchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.cchips button{flex:none;width:38px;height:38px;border-radius:50%;border:3px solid;background:#fff;color:#15171E;font-family:var(--f-mono);font-weight:700;font-size:14px;cursor:pointer;padding:0}
+.cchips button[aria-pressed="true"]{background:#15171E;color:#fff;transform:scale(1.08)}
+.lpop{position:absolute;top:64px;left:10px;width:min(340px,calc(100% - 20px));max-height:calc(100% - 140px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px var(--shadow);padding:10px;display:flex;flex-direction:column;gap:10px;z-index:5}
+.lhead{display:flex;align-items:center;gap:8px}
+.lhead .btn{margin-left:auto}
+.llist{display:flex;flex-direction:column;gap:4px}
+.lrow{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:4px 6px;cursor:pointer;background:var(--surface-2)}
+.lrow[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-soft)}
+.lrow .eye{width:32px;height:32px;border:0;background:none;cursor:pointer;color:var(--fg);display:grid;place-items:center;padding:0}
+.lrow .eye svg{width:18px;height:18px}
+.lrow .eye[aria-pressed="false"]{opacity:.35}
+.lrow .nm{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .tags{display:flex;gap:4px}
+.lrow .tags span{font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--muted);background:var(--surface)}
+.ledit{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.ledit .seg button{font-size:12px;padding:7px 4px}
+.toolbar,.lpop,.copybar,.zoombox{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lpop input{-webkit-user-select:text;user-select:text}
+#lDel.armed{background:#C8321F;border-color:#C8321F;color:#fff}
 .zoombox{position:absolute;right:calc(10px + env(safe-area-inset-right,0px)*0);bottom:10px;display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:0 2px 8px var(--shadow);align-items:center}
 .zoombox button{border:0;background:transparent;min-width:38px;height:34px;border-radius:7px;cursor:pointer;font-size:13px}
 .zoombox output{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);min-width:44px;text-align:center;font-variant-numeric:tabular-nums}
-.note{position:absolute;left:10px;bottom:10px;max-width:min(440px,calc(100% - 200px));background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:0 2px 8px var(--shadow);display:flex;gap:8px;align-items:flex-start}
+.note{position:absolute;left:10px;bottom:66px;max-width:min(440px,calc(100% - 200px));background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:0 2px 8px var(--shadow);display:flex;gap:8px;align-items:flex-start}
 .note button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:0 2px;flex:none}
 
 .side{overflow-y:auto;min-width:0;display:flex;flex-direction:column;gap:10px;padding-right:2px}
@@ -140,7 +167,8 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
   .side.open{transform:none}
   .sidehead{display:flex;justify-content:space-between;align-items:center;font-weight:700}
   .bsize input{width:70px}
-  .note{max-width:calc(100% - 20px);bottom:56px}
+  .note{max-width:calc(100% - 20px);bottom:122px}
+  .copybar{max-width:calc(100% - 20px);bottom:62px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -168,12 +196,11 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
         <button class="tb" data-set="tool" data-val="axis" title="軸を動かす (A)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="2.2" fill="currentColor"/><path d="M10 2v4M10 14v4M2 10h4M14 10h4"/></svg>軸</button>
         <button class="tb" data-set="tool" data-val="hand" title="移動 (H・スペース長押し)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 10V4.5a1.2 1.2 0 012.4 0V9M9.4 9V3.3a1.2 1.2 0 012.4 0V9M11.8 9V4.3a1.2 1.2 0 012.4 0V11c0 3.5-2 6-5 6-2 0-3.2-1-4.3-2.6L3.5 11.6a1.2 1.2 0 011.9-1.4L7 12"/></svg>移動</button>
       </div>
-      <div class="tgrp" role="group" aria-label="描くレイヤー">
-        <button class="tb" data-set="layer" data-val="ink" title="本線に描く (S で切替)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 14c3-6 6-8 12-9"/></svg>本線</button>
-        <button class="tb" data-set="layer" data-val="sketch" title="下書きに描く (S で切替)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="2 2.5"><path d="M4 14c3-6 6-8 12-9"/><path d="M3 16c4-5 8-8 14-10"/></svg>下書き</button>
+      <div class="tgrp">
+        <button class="tb lbtn" id="layerBtn" aria-haspopup="true" aria-expanded="false" title="レイヤー"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 3l7 3.5-7 3.5-7-3.5z"/><path d="M3 10l7 3.5 7-3.5"/><path d="M3 13.5l7 3.5 7-3.5"/></svg><span id="layerName">本線</span></button>
       </div>
       <div class="tgrp">
-        <div class="bsize"><span class="bdot"><span id="bdot"></span></span><input type="range" id="brush" min="2" max="80" step="1" data-bind="brush" aria-label="太さ"></div>
+        <div class="bsize"><span class="bdot"><span id="bdot"></span></span><span class="blabel" id="bLabel">ペン</span><input type="range" id="brush" min="2" max="120" step="1" aria-label="太さ"><output id="bOut"></output></div>
       </div>
       <div class="tgrp">
         <button class="tb" id="undoBtn" title="元に戻す (Ctrl+Z)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 5L3 9l4 4"/><path d="M3 9h9a5 5 0 010 10h-2"/></svg>戻す</button>
@@ -181,8 +208,20 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
       </div>
       <div class="tgrp settingsBtn"><button class="tb" id="sideToggle"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h14M3 14h14"/><circle cx="7" cy="6" r="2" fill="currentColor"/><circle cx="13" cy="14" r="2" fill="currentColor"/></svg>設定</button></div>
     </div>
-    <div class="note" id="sampleNote" hidden><span>例として、ひとつのパーツを180°回転で2個並べています。設定の「全消去」から自分のパーツを描き始められます。</span><button id="noteClose" aria-label="閉じる">✕</button></div>
+    <div class="note" id="sampleNote" hidden><span>例として、ひとつのパーツを180°回転で2個並べています。「レイヤー」から線を全消去すると、自分のパーツを描き始められます。</span><button id="noteClose" aria-label="閉じる">✕</button></div>
     <div class="zoombox"><button id="zOut" aria-label="縮小">−</button><output id="zLabel">100%</output><button id="zIn" aria-label="拡大">＋</button><button id="zFit">全体</button></div>
+    <div class="copybar" id="copybar" role="group" aria-label="描くコピー"><span class="cblabel">描く<br>コピー</span><div class="cchips" id="cchips"></div></div>
+    <div class="lpop" id="lpop" hidden>
+      <div class="lhead"><b>レイヤー</b><span class="sub">上ほど手前</span><button class="btn" id="lAdd">＋ 追加</button></div>
+      <div class="llist" id="lList"></div>
+      <div class="ledit">
+        <input type="text" id="lName" aria-label="レイヤー名" maxlength="20">
+        <div class="seg" role="group" aria-label="線の種類"><button data-lstyle="ink">インク（コピーごとの色）</button><button data-lstyle="pencil">鉛筆（青・書き出さない）</button></div>
+        <label class="chk"><input type="checkbox" id="lRep">全コピーに複製する</label>
+        <div class="field"><label for="lAlpha">濃さ</label><input type="range" id="lAlpha" min="0.05" max="1" step="0.05"><output id="lAlphaOut"></output></div>
+        <div class="btns"><button class="btn" id="lUp">上へ</button><button class="btn" id="lDown">下へ</button><button class="btn" id="lClear">線を全消去</button><button class="btn" id="lDel">削除</button></div>
+      </div>
+    </div>
   </section>
 
   <aside class="side" id="side">
@@ -227,14 +266,6 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
       </div>
     </div>
 
-    <div class="panel">
-      <div class="ph">描くコピー <span class="sub">どのコピーの上に描くか</span></div>
-      <div class="pb">
-        <div class="chips" id="chips"></div>
-        <p class="desc">選んだコピーの上に描いた線は、パーツに書き戻されて全コピーに反映されます。文字を見ながら描きたい場所のコピーを選んでください。「軸」か「移動」の道具では、描画面の番号を押しても選べます。</p>
-      </div>
-    </div>
-
     <details class="panel" open>
       <summary>見え方</summary>
       <div class="pb">
@@ -260,22 +291,11 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
       </div>
     </details>
 
-    <details class="panel" open>
-      <summary>下書きレイヤー</summary>
-      <div class="pb">
-        <label class="chk"><input type="checkbox" data-bind="sk.show">下書きを表示</label>
-        <div class="field"><label for="skA">濃さ</label><input type="range" id="skA" min="0.05" max="1" step="0.05" data-bind="sk.alpha"><output data-out="sk.alpha"></output></div>
-        <label class="chk"><input type="checkbox" data-bind="sk.rep">これから描く下書きを全コピーに反映する</label>
-        <p class="desc">オンだとパーツのアタリとして複製され、オフだと描いた場所に1つだけ残ります（全体の字形のアタリ向き）。下書きは書き出し画像に含まれません。</p>
-        <div class="btns"><button class="btn" id="clearSketch">下書きを全消去</button></div>
-      </div>
-    </details>
-
     <details class="panel">
-      <summary>パーツ</summary>
+      <summary>レイヤーの中身</summary>
       <div class="pb">
         <p class="desc" id="partInfo"></p>
-        <div class="btns"><button class="btn" id="clearAll">本線を全消去（元に戻せます）</button></div>
+        <p class="desc">レイヤーの追加・並べ替え・削除は、道具の帯の「レイヤー」から行えます。</p>
       </div>
     </details>
   </aside>
@@ -309,12 +329,15 @@ const FONTS={
   dela:{label:'デラゴシック',css:p=>`400 ${p}px "Dela Gothic One", sans-serif`},
   kaku:{label:'角ゴシック 太',css:p=>`700 ${p}px "Zen Kaku Gothic New", sans-serif`},
 };
-const S={strokes:[],mode:'rot',count:2,trans:{x:-180,y:0,dx:180,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},
-  glide:{x:0,y:0,ang:0,shift:160},drawOn:0,tool:'pen',brush:22,pressure:true,look:'split',grid:true,snap:true,showAxis:true,penOnly:false,
+const S={mode:'rot',count:2,trans:{x:-180,y:0,dx:180,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},
+  glide:{x:0,y:0,ang:0,shift:160},drawOn:0,tool:'pen',penSize:22,eraseSize:40,pressure:true,look:'split',grid:true,snap:true,showAxis:true,penOnly:false,
   guide:{text:'',font:'sans',size:360,x:0,y:0,alpha:.3,show:true},exLook:'split',exGuide:false,
-  layer:'ink',sketch:[],sk:{show:true,alpha:.45,rep:true}};
+  layers:[],cur:0};
 const SKC='#4A7FE0';
-const cur=()=>S.layer==='sketch'?S.sketch:S.strokes;
+let LID=1;
+const newLayer=(name,style,rep)=>({id:LID++,name,style,rep,show:true,alpha:style==='pencil'?.45:1,strokes:[]});
+const curL=()=>S.layers.find(l=>l.id===S.cur)||S.layers[S.layers.length-1];
+const sizeKey=()=>S.tool==='erase'?'eraseSize':'penSize';
 const V={z:1,ox:0,oy:0};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),board=$('#board');
@@ -363,14 +386,20 @@ function syncUI(inputs=true){
   $('#modeTrans').hidden=S.mode!=='trans';$('#modeRot').hidden=S.mode!=='rot';$('#modeGlide').hidden=S.mode!=='glide';
   $('#modeTrans').style.display=S.mode==='trans'?'grid':'none';$('#modeRot').style.display=S.mode==='rot'?'flex':'none';$('#modeGlide').style.display=S.mode==='glide'?'flex':'none';
   $('#cOut').textContent=S.count;
-  const chips=$('#chips');
-  if(chips.childElementCount!==S.count)chips.innerHTML=Array.from({length:S.count},(_,k)=>`<button class="chip" data-chip="${k}"><i style="background:${PAL[k%PAL.length]}"></i>${k+1}${k===0?'（元）':''}</button>`).join('');
+  const chips=$('#cchips');
+  if(chips.childElementCount!==S.count)chips.innerHTML=Array.from({length:S.count},(_,k)=>`<button data-chip="${k}" style="border-color:${PAL[k%PAL.length]}" aria-label="コピー${k+1}に描く">${k+1}</button>`).join('');
   chips.querySelectorAll('[data-chip]').forEach(c=>c.setAttribute('aria-pressed',+c.dataset.chip===S.drawOn));
-  const d=$('#bdot');const sz=Math.max(3,Math.min(24,S.brush*V.z));d.style.width=d.style.height=sz+'px';
-  $('#partInfo').textContent=(S.strokes.length?`本線 ${S.strokes.length} 本`:'本線はまだ空')+`・下書き ${S.sketch.length} 本`;
+  const L=curL();$('#copybar').classList.toggle('off',!L.rep);$('#copybar').title=L.rep?'':'このレイヤーは複製しないので、描いた場所にそのまま残ります';
+  const sk=sizeKey(),sv=S[sk];$('#bLabel').textContent=sk==='eraseSize'?'消しゴム':'ペン';$('#bOut').textContent=sv;
+  if(document.activeElement!==$('#brush'))$('#brush').value=sv;
+  const d=$('#bdot');const sz=Math.max(3,Math.min(24,sv*V.z));d.style.width=d.style.height=sz+'px';d.style.background=sk==='eraseSize'?'transparent':'';d.style.border=sk==='eraseSize'?'1.5px solid var(--fg)':'';
+  $('#layerName').textContent=L.name;
+  $('#partInfo').textContent=S.layers.slice().reverse().map(l=>`${l.name}：${l.strokes.length}本`).join('　');
+  renderLayers();
   if(inputs)syncInputs();
 }
-$('#chips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(!c)return;S.drawOn=+c.dataset.chip;syncUI();draw();save();});
+$('#cchips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(!c)return;S.drawOn=+c.dataset.chip;syncUI(false);draw();save();});
+$('#brush').addEventListener('input',e=>{S[sizeKey()]=+e.target.value;syncUI(false);save();});
 $('#cMinus').onclick=()=>{S.count=Math.max(2,S.count-1);syncUI();draw();save();};
 $('#cPlus').onclick=()=>{S.count=Math.min(24,S.count+1);syncUI();draw();save();};
 
@@ -392,9 +421,9 @@ function boxOf(list){
     for(const q of st.p){any=true;if(q[0]-h<x0)x0=q[0]-h;if(q[1]-h<y0)y0=q[1]-h;if(q[0]+h>x1)x1=q[0]+h;if(q[1]+h>y1)y1=q[1]+h;}}
   return any?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null;
 }
-const skRep=()=>S.sketch.filter(s=>!s.ws),skWorld=()=>S.sketch.filter(s=>s.ws);
-const motifBox=()=>boxOf(S.strokes);
-let dirty=true;const caches={ink:null,rep:null,world:null};
+const visL=()=>S.layers.filter(l=>l.show);
+const repBox=(onlyInk)=>boxOf(visL().filter(l=>l.rep&&(!onlyInk||l.style==='ink')).flatMap(l=>l.strokes));
+let dirty=true;let caches=new Map(),cacheSc=0;
 function build(list,sc0){
   const b=boxOf(list);if(!b)return null;
   const sc=Math.max(.05,Math.min(sc0,4096/Math.max(b.w,b.h)));
@@ -404,9 +433,9 @@ function build(list,sc0){
   return{c,sc,tints:{},...b};
 }
 function getLayers(){
-  const dpr=window.devicePixelRatio||1,want=V.z*dpr,m=caches.ink||caches.rep||caches.world;
-  if(dirty||!m||m.sc<want*.8||m.sc>want*1.6){
-    dirty=false;caches.ink=build(S.strokes,want*1.2);caches.rep=build(skRep(),want*1.2);caches.world=build(skWorld(),want*1.2);
+  const dpr=window.devicePixelRatio||1,want=V.z*dpr;
+  if(dirty||!cacheSc||cacheSc<want*.8||cacheSc>want*1.6){
+    dirty=false;cacheSc=want*1.2;caches=new Map();for(const l of S.layers)caches.set(l.id,build(l.strokes,cacheSc));
   }
   return caches;
 }
@@ -439,28 +468,21 @@ function render(){
   if(S.grid)drawGrid(W,H);
   const base=mul([dpr,0,0,dpr,0,0],Vm());
   if(S.guide.show&&S.guide.text){ctx.setTransform(...base);ctx.globalAlpha=S.guide.alpha*.35;ctx.fillStyle=GUIDE;drawGuide(ctx,'fill');ctx.globalAlpha=1;}
-  const L=getLayers();
-  if(S.sk.show){
-    const r=L.rep,w=L.world;
-    if(r)for(let k=0;k<S.count;k++){ctx.setTransform(...mul(base,M(k)));ctx.globalAlpha=S.sk.alpha*(S.look==='focus'&&k!==S.drawOn?.5:1);ctx.drawImage(tinted(r,SKC),r.x,r.y,r.w,r.h);}
-    if(w){ctx.setTransform(...base);ctx.globalAlpha=S.sk.alpha;ctx.drawImage(tinted(w,SKC),w.x,w.y,w.w,w.h);}
-    ctx.globalAlpha=1;
-  }
-  const m=L.ink;
-  if(m){
-    const fade=S.layer==='sketch'?.55:1;
-    for(let k=0;k<S.count;k++){
+  const C=getLayers();
+  for(const l of S.layers){
+    const m=C.get(l.id);if(!l.show||!m)continue;const ink=l.style==='ink';
+    if(l.rep){for(let k=0;k<S.count;k++){
       ctx.setTransform(...mul(base,M(k)));
-      ctx.globalAlpha=fade*(S.look==='focus'&&k!==S.drawOn?.22:(S.look==='split'?.9:1));
-      ctx.drawImage(tinted(m,copyColor(k,S.look==='focus'?'split':S.look)),m.x,m.y,m.w,m.h);
-    }
-    ctx.globalAlpha=1;
+      ctx.globalAlpha=l.alpha*(S.look==='focus'&&k!==S.drawOn?(ink?.22:.5):(ink&&S.look==='split'?.9:1));
+      ctx.drawImage(tinted(m,ink?copyColor(k,S.look==='focus'?'split':S.look):SKC),m.x,m.y,m.w,m.h);}}
+    else{ctx.setTransform(...base);ctx.globalAlpha=l.alpha;ctx.drawImage(tinted(m,ink?(S.look==='mono'?MONO:PAL[0]):SKC),m.x,m.y,m.w,m.h);}
   }
+  ctx.globalAlpha=1;
   if(S.guide.show&&S.guide.text){ctx.setTransform(...base);ctx.globalAlpha=Math.min(1,S.guide.alpha*1.6);ctx.strokeStyle=GUIDE;ctx.lineWidth=1.4/V.z;ctx.lineJoin='round';drawGuide(ctx,'stroke');ctx.globalAlpha=1;}
   ctx.setTransform(dpr,0,0,dpr,0,0);
   if(S.showAxis||S.tool==='axis')drawAxis(W,H);
   if(S.showAxis||S.tool==='axis'||S.tool==='hand')drawBadges();
-  if(hoverPt&&(S.tool==='pen'||S.tool==='erase')){const r=Math.max(2,S.brush*V.z/2);ctx.beginPath();ctx.arc(hoverPt[0],hoverPt[1],r,0,Math.PI*2);ctx.strokeStyle=S.layer==='sketch'?SKC:'rgba(20,22,30,.55)';ctx.lineWidth=1;ctx.stroke();}
+  if(hoverPt&&(S.tool==='pen'||S.tool==='erase')){const r=Math.max(2,S[sizeKey()]*V.z/2);ctx.beginPath();ctx.arc(hoverPt[0],hoverPt[1],r,0,Math.PI*2);ctx.strokeStyle=curL().style==='pencil'?SKC:'rgba(20,22,30,.55)';ctx.lineWidth=1;ctx.stroke();}
   $('#zLabel').textContent=Math.round(V.z*100)+'%';
 }
 function drawGrid(W,H){
@@ -493,7 +515,7 @@ function drawAxis(W,H){
     ctx.beginPath();ctx.arc(a,b,r,0,Math.PI*2);ctx.fillStyle=strong?'#fff':AXIS;ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle=AXIS;ctx.stroke();}
   ctx.restore();
 }
-const badgeBox=()=>motifBox()||boxOf(skRep());
+const badgeBox=()=>repBox(true)||repBox(false);
 function badgePos(k){const b=badgeBox();if(!b)return null;return w2s(...ap(M(k),b.x+b.w/2,b.y+b.h/2));}
 function drawBadges(){
   if(!badgeBox())return;ctx.save();ctx.font='700 12px "IBM Plex Mono", monospace';ctx.textAlign='center';ctx.textBaseline='middle';
@@ -505,15 +527,52 @@ function drawBadges(){
 
 /* ---------- undo ---------- */
 const undo=[],redo=[];
-const snapL=()=>({s:S.strokes.slice(),k:S.sketch.slice()});
-function restoreL(o){S.strokes=o.s;S.sketch=o.k;dirty=true;}
+const snapL=()=>({cur:S.cur,layers:S.layers.map(l=>({...l,strokes:l.strokes.slice()}))});
+function restoreL(o){S.layers=o.layers;S.cur=o.cur;dirty=true;}
 function pushUndo(){undo.push(snapL());if(undo.length>300)undo.shift();redo.length=0;updUndo();}
 function updUndo(){$('#undoBtn').disabled=!undo.length;$('#redoBtn').disabled=!redo.length;}
 function doUndo(){if(!undo.length)return;redo.push(snapL());restoreL(undo.pop());updUndo();syncUI(false);draw();save();}
 function doRedo(){if(!redo.length)return;undo.push(snapL());restoreL(redo.pop());updUndo();syncUI(false);draw();save();}
 $('#undoBtn').onclick=doUndo;$('#redoBtn').onclick=doRedo;
-$('#clearAll').onclick=()=>{if(!S.strokes.length)return;pushUndo();S.strokes=[];dirty=true;$('#sampleNote').hidden=true;syncUI(false);draw();save();toast('本線を消しました。「戻す」で元に戻せます。');};
-$('#clearSketch').onclick=()=>{if(!S.sketch.length)return;pushUndo();S.sketch=[];dirty=true;syncUI(false);draw();save();toast('下書きを消しました。「戻す」で元に戻せます。');};
+
+/* ---------- layers UI ---------- */
+const EYE='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 10S5 4.5 10 4.5 18.5 10 18.5 10 15 15.5 10 15.5 1.5 10 1.5 10z"/><circle cx="10" cy="10" r="2.6"/></svg>';
+function renderLayers(){
+  const L=curL();
+  $('#lList').innerHTML=S.layers.slice().reverse().map(l=>`<div class="lrow" data-lid="${l.id}" aria-current="${l.id===L.id}" role="button" tabindex="0">
+    <button class="eye" data-eye="${l.id}" aria-pressed="${l.show}" aria-label="${l.show?'隠す':'表示する'}">${EYE}</button>
+    <span class="nm">${l.name.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</span>
+    <span class="tags"><span>${l.style==='ink'?'インク':'鉛筆'}</span>${l.rep?'':'<span>複製なし</span>'}</span></div>`).join('');
+  if(document.activeElement!==$('#lName'))$('#lName').value=L.name;
+  document.querySelectorAll('[data-lstyle]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lstyle===L.style));
+  $('#lRep').checked=L.rep;$('#lAlpha').value=L.alpha;$('#lAlphaOut').textContent=fmt(L.alpha);
+  const i=S.layers.indexOf(L);$('#lUp').disabled=i===S.layers.length-1;$('#lDown').disabled=i===0;$('#lDel').disabled=S.layers.length<2;
+}
+const lpop=$('#lpop');
+function togglePop(open){lpop.hidden=open===undefined?!lpop.hidden:!open;$('#layerBtn').setAttribute('aria-expanded',!lpop.hidden);if(!lpop.hidden)renderLayers();}
+$('#layerBtn').onclick=()=>togglePop();
+function layersChanged(){dirty=true;syncUI(false);draw();save();}
+$('#lList').addEventListener('click',e=>{
+  const eye=e.target.closest('[data-eye]');
+  if(eye){const l=S.layers.find(x=>x.id===+eye.dataset.eye);l.show=!l.show;layersChanged();return;}
+  const r=e.target.closest('[data-lid]');if(r){S.cur=+r.dataset.lid;layersChanged();}
+});
+$('#lList').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset.lid){e.preventDefault();e.target.click();}});
+$('#lAdd').onclick=()=>{pushUndo();const L=curL(),n=newLayer(`レイヤー${S.layers.length+1}`,'pencil',true);S.layers.splice(S.layers.indexOf(L)+1,0,n);S.cur=n.id;layersChanged();toast(`「${n.name}」を追加しました。`);};
+$('#lName').addEventListener('input',e=>{curL().name=e.target.value.trim()||'名前なし';syncUI(false);save();});
+document.querySelectorAll('[data-lstyle]').forEach(b=>b.onclick=()=>{const L=curL();L.style=b.dataset.lstyle;if(L.style==='pencil'&&L.alpha===1)L.alpha=.45;else if(L.style==='ink'&&L.alpha===.45)L.alpha=1;layersChanged();});
+$('#lRep').onchange=e=>{curL().rep=e.target.checked;layersChanged();};
+$('#lAlpha').oninput=e=>{curL().alpha=+e.target.value;$('#lAlphaOut').textContent=fmt(curL().alpha);draw();save();};
+function moveLayer(d){const L=curL(),i=S.layers.indexOf(L),j=i+d;if(j<0||j>=S.layers.length)return;pushUndo();S.layers.splice(i,1);S.layers.splice(j,0,L);layersChanged();}
+$('#lUp').onclick=()=>moveLayer(1);$('#lDown').onclick=()=>moveLayer(-1);
+$('#lClear').onclick=()=>{const L=curL();if(!L.strokes.length)return;pushUndo();L.strokes=[];$('#sampleNote').hidden=true;layersChanged();toast(`「${L.name}」の線を消しました。「戻す」で元に戻せます。`);};
+let delArm=0;
+$('#lDel').onclick=()=>{
+  const b=$('#lDel');if(S.layers.length<2)return;
+  if(!delArm){b.classList.add('armed');b.textContent='もう一度押すと削除';delArm=setTimeout(()=>{delArm=0;b.classList.remove('armed');b.textContent='削除';},2500);return;}
+  clearTimeout(delArm);delArm=0;b.classList.remove('armed');b.textContent='削除';
+  pushUndo();const L=curL(),i=S.layers.indexOf(L);S.layers.splice(i,1);S.cur=S.layers[Math.max(0,i-1)].id;layersChanged();toast(`「${L.name}」を削除しました。「戻す」で元に戻せます。`);
+};
 
 /* ---------- input ---------- */
 const touches=new Map();let act=null,pinch=null,penSeen=false,spaceDown=false,hoverPt=null;
@@ -533,6 +592,7 @@ function addPt(e,st){
 }
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{
+  if(!lpop.hidden)togglePop(false);
   if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(touches.size===2){cancelDraw();startPinch();return;}if(touches.size>2)return;}
   if(e.pointerType==='pen'&&!penSeen){penSeen=true;if(!S.penOnly){S.penOnly=true;toast('ペンを検出しました。指は移動と拡大縮小に使い、描くのはペンだけにします。');}}
@@ -543,9 +603,10 @@ cv.addEventListener('pointerdown',e=>{
   if(bk>=0&&!spaceDown){S.drawOn=bk;syncUI(false);draw();save();act={type:'none',id:e.pointerId};return;}
   if(S.tool==='axis'&&!panReq){const h=hitHandle(sx,sy);if(h){act={type:'handle',id:e.pointerId,h:h.id};return;}}
   if(panReq||S.tool==='axis'||e.button===2){act={type:'pan',id:e.pointerId,sx,sy,ox:V.ox,oy:V.oy};return;}
-  pushUndo();const list=cur(),st={t:S.tool==='erase'?'e':'p',w:S.brush,pr:S.pressure&&e.pointerType==='pen',p:[]};
-  if(S.layer==='sketch'&&!S.sk.rep)st.ws=true;
-  if(S.layer==='sketch'&&!S.sk.show){S.sk.show=true;syncUI();}
+  const Lr=curL();
+  if(!Lr.show){Lr.show=true;toast(`隠れていた「${Lr.name}」を表示しました。`);layersChanged();}
+  pushUndo();const list=Lr.strokes,st={t:S.tool==='erase'?'e':'p',w:S[sizeKey()],pr:S.pressure&&e.pointerType==='pen',p:[]};
+  if(!Lr.rep)st.ws=true;
   list.push(st);addPt(e,st);act={type:'draw',id:e.pointerId,st,list};$('#sampleNote').hidden=true;draw();
 });
 const snapV=v=>S.snap?Math.round(v/10)*10:Math.round(v);
@@ -587,8 +648,9 @@ function allBox(withGuide){
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   const ext=(x,y)=>{x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);};
   const corners=b=>[[b.x,b.y],[b.x+b.w,b.y],[b.x,b.y+b.h],[b.x+b.w,b.y+b.h]];
-  for(const b of [motifBox(),withGuide?boxOf(skRep()):null])if(b)for(let k=0;k<S.count;k++)for(const[cx,cy]of corners(b))ext(...ap(M(k),cx,cy));
-  const wb=withGuide?boxOf(skWorld()):null;if(wb)for(const[cx,cy]of corners(wb))ext(cx,cy);
+  const ls=visL().filter(l=>withGuide||l.style==='ink');
+  const rb=boxOf(ls.filter(l=>l.rep).flatMap(l=>l.strokes));if(rb)for(let k=0;k<S.count;k++)for(const[cx,cy]of corners(rb))ext(...ap(M(k),cx,cy));
+  const wb=boxOf(ls.filter(l=>!l.rep).flatMap(l=>l.strokes));if(wb)for(const[cx,cy]of corners(wb))ext(cx,cy);
   if(withGuide&&S.guide.text){const g=S.guide,h=g.size*.55*Math.max(1,[...g.text].length);x0=Math.min(x0,g.x-h);x1=Math.max(x1,g.x+h);y0=Math.min(y0,g.y-g.size*.55);y1=Math.max(y1,g.y+g.size*.55);}
   return x1>x0?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null;
 }
@@ -606,11 +668,11 @@ document.addEventListener('keydown',e=>{
   if(e.key===' '){spaceDown=true;e.preventDefault();return;}
   const map={b:'pen',p:'pen',e:'erase',a:'axis',h:'hand'};
   if(map[k])S.tool=map[k];
-  else if(k==='s'){S.layer=S.layer==='ink'?'sketch':'ink';}
-  else if(k==='['){S.brush=Math.max(2,S.brush-2);}
-  else if(k===']'){S.brush=Math.min(80,S.brush+2);}
+  else if(k==='l'){togglePop();return;}
+  else if(k==='['){S[sizeKey()]=Math.max(2,S[sizeKey()]-2);}
+  else if(k===']'){S[sizeKey()]=Math.min(120,S[sizeKey()]+2);}
   else if(/^[1-9]$/.test(k)&&+k<=S.count){S.drawOn=+k-1;}
-  else if(k==='escape'){$('#modal').hidden=true;$('#side').classList.remove('open');return;}
+  else if(k==='escape'){$('#modal').hidden=true;$('#side').classList.remove('open');togglePop(false);return;}
   else return;
   syncUI();draw();save();
 });
@@ -621,7 +683,7 @@ new ResizeObserver(()=>draw()).observe(board);
 
 /* ---------- export / data ---------- */
 function buildExport(){
-  const b=allBox(S.exGuide);const c=document.createElement('canvas');
+  const b=allBox(false)||(S.exGuide?allBox(true):null);const c=document.createElement('canvas');
   if(!b){c.width=c.height=200;}
   const pad=40,sc=b?Math.min(4,1600/Math.max(b.w+pad*2,b.h+pad*2)):1;
   if(b){c.width=Math.ceil((b.w+pad*2)*sc);c.height=Math.ceil((b.h+pad*2)*sc);}
@@ -629,22 +691,29 @@ function buildExport(){
   if(b){
     const base=[sc,0,0,sc,(pad-b.x)*sc,(pad-b.y)*sc];
     if(S.exGuide&&S.guide.text){x.setTransform(...base);x.globalAlpha=.25;x.fillStyle=GUIDE;drawGuide(x,'fill');x.globalAlpha=1;}
-    const mb=motifBox();
-    if(mb){const off=document.createElement('canvas'),s2=sc*1.5;off.width=Math.ceil(mb.w*s2);off.height=Math.ceil(mb.h*s2);
-      const o=off.getContext('2d');o.setTransform(s2,0,0,s2,-mb.x*s2,-mb.y*s2);for(const st of S.strokes)drawStroke(o,st);
-      for(let k=0;k<S.count;k++){const t=document.createElement('canvas');t.width=off.width;t.height=off.height;const tx=t.getContext('2d');
-        tx.drawImage(off,0,0);tx.globalCompositeOperation='source-in';tx.fillStyle=copyColor(k,S.exLook);tx.fillRect(0,0,t.width,t.height);
-        x.setTransform(...mul(base,M(k)));x.globalAlpha=S.exLook==='split'?.92:1;x.drawImage(t,mb.x,mb.y,mb.w,mb.h);}
-      x.globalAlpha=1;}
+    for(const l of S.layers){
+      if(!l.show||l.style!=='ink')continue;const m=build(l.strokes,sc*1.5);if(!m)continue;
+      if(l.rep)for(let k=0;k<S.count;k++){x.setTransform(...mul(base,M(k)));x.globalAlpha=l.alpha*(S.exLook==='split'?.92:1);x.drawImage(tinted(m,copyColor(k,S.exLook)),m.x,m.y,m.w,m.h);}
+      else{x.setTransform(...base);x.globalAlpha=l.alpha;x.drawImage(tinted(m,S.exLook==='mono'?MONO:PAL[0]),m.x,m.y,m.w,m.h);}
+    }
+    x.globalAlpha=1;
   }
   $('#mImg').src=c.toDataURL('image/png');
 }
-const PERSIST=['layer','sketch','sk','strokes','mode','count','trans','rot','glide','drawOn','tool','brush','pressure','look','grid','snap','showAxis','penOnly','guide','exLook','exGuide'];
-function dataJSON(){const o={app:'chojo',v:1};PERSIST.forEach(k=>o[k]=S[k]);o.view={...V};return JSON.stringify(o);}
+const PERSIST=['layers','cur','penSize','eraseSize','mode','count','trans','rot','glide','drawOn','tool','pressure','look','grid','snap','showAxis','penOnly','guide','exLook','exGuide'];
+function dataJSON(){const o={app:'chojo',v:2};PERSIST.forEach(k=>o[k]=S[k]);o.view={...V};return JSON.stringify(o);}
 function applyData(o){
-  if(!o||o.app!=='chojo'||!Array.isArray(o.strokes))throw new Error('bad');
+  if(!o||o.app!=='chojo')throw new Error('bad');
+  if(!Array.isArray(o.layers)){ // 旧形式（本線＋下書き）からの引き継ぎ
+    if(!Array.isArray(o.strokes))throw new Error('bad');
+    const sk=o.sketch||[],skp=o.sk||{},a=newLayer('下書き','pencil',true),b=newLayer('下書き（固定）','pencil',false),c=newLayer('本線','ink',true);
+    a.strokes=sk.filter(s=>!s.ws);b.strokes=sk.filter(s=>s.ws);c.strokes=o.strokes;[a,b].forEach(l=>{l.show=skp.show!==false;l.alpha=skp.alpha||.45;});
+    o.layers=[a,...(b.strokes.length?[b]:[]),c];o.cur=c.id;o.penSize=o.brush||22;
+  }
+  if(!o.layers.length)throw new Error('bad');
   PERSIST.forEach(k=>{if(k in o){if(S[k]&&typeof S[k]==='object'&&!Array.isArray(S[k]))Object.assign(S[k],o[k]);else S[k]=o[k];}});
   if(o.view&&o.view.z){V.z=o.view.z;V.ox=o.view.ox;V.oy=o.view.oy;}
+  LID=Math.max(LID,...S.layers.map(l=>l.id+1));if(!S.layers.some(l=>l.id===S.cur))S.cur=S.layers[S.layers.length-1].id;
   dirty=true;
 }
 $('#exportBtn').onclick=()=>{buildExport();$('#mJson').value=dataJSON();$('#modal').hidden=false;syncUI();};
@@ -658,10 +727,12 @@ $('#noteClose').onclick=()=>$('#sampleNote').hidden=true;
 $('#gFont').innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
 
 /* ---------- boot ---------- */
-let had=false;try{const s=localStorage.getItem(KEY);if(s){applyData(JSON.parse(s));had=true;}}catch(_){}
+let had=false;S.layers=[];try{const s=localStorage.getItem(KEY);if(s){applyData(JSON.parse(s));had=true;}}catch(_){}
 if(!had){
   const L=(pts)=>({t:'p',w:24,pr:false,p:pts.map(([x,y])=>[x,y,.5])});
-  S.strokes=[L([[-150,-130],[110,-130],[110,-12],[-40,-12]]),L([[-150,-130],[-150,-70]])];
+  const sk=newLayer('下書き','pencil',true),ink=newLayer('本線','ink',true);
+  ink.strokes=[L([[-150,-130],[110,-130],[110,-12],[-40,-12]]),L([[-150,-130],[-150,-70]])];
+  S.layers=[sk,ink];S.cur=ink.id;
   $('#sampleNote').hidden=false;
 }
 syncUI();updUndo();
