@@ -18,6 +18,10 @@ body{margin:0;font-size:14px;font-family:system-ui,sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 a.btn{text-decoration:none;color:inherit}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+.ibtn{width:42px;height:38px;padding:0!important}
+.ibtn svg{width:21px;height:21px}
 </style>
 <title>図地アンビグラム工房</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -196,7 +200,7 @@ textarea{width:100%;height:110px;font-family:var(--f-mono);font-size:11px;resize
     <div><h1>図地アンビグラム工房</h1><p>図地反転型・図地渾然型のための色分け作図台</p></div>
   </div>
   <div class="actions">
-    <a class="btn" href="./">← 一覧</a>
+    <a class="btn ibtn" href="./" title="一覧に戻る" aria-label="一覧に戻る"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 9.5L10 3.5l7 6"/><path d="M5 8.5V16.5h10V8.5"/></svg></a>
     <button class="btn" id="newBtn">新しい作品</button>
     <button class="btn" id="undoBtn" title="元に戻す (Ctrl+Z)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 5L3 9l4 4"/><path d="M3 9h9a5 5 0 010 10h-2"/></svg>元に戻す</button>
     <button class="btn" id="redoBtn" title="やり直す (Ctrl+Shift+Z)"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 5l4 4-4 4"/><path d="M17 9H8a5 5 0 000 10h2"/></svg>やり直す</button>

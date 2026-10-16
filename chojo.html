@@ -18,6 +18,10 @@ body{margin:0;font-size:14px;font-family:system-ui,sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 a.btn{text-decoration:none;color:inherit}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+.ibtn{width:42px;height:38px;padding:0!important}
+.ibtn svg{width:21px;height:21px}
 </style>
 <title>重畳アンビグラム工房</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -77,6 +81,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bdot{width:26px;height:26px;display:grid;place-items:center}
 .bdot span{display:block;border-radius:50%;background:var(--fg)}
 .settingsBtn{display:none}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+.ibtn{width:42px;height:38px;padding:0}
+.ibtn svg{width:21px;height:21px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .blabel{font-size:11px;min-width:3.6em;color:var(--fg)}
 .bsize output{font-family:var(--f-mono);font-size:11px;min-width:2em;text-align:right;font-variant-numeric:tabular-nums}
 .lbtn{min-width:72px;max-width:120px}
@@ -215,9 +224,9 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
     <div><h1>重畳アンビグラム工房</h1><p>ひとつのパーツを並進・回転・映進で敷き詰めるラフ描き台</p></div>
   </div>
   <div class="actions">
-    <a class="btn" href="./">← 一覧</a>
-    <button class="btn projbtn" id="projBtn" title="作品の一覧"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg><span id="projName">作品</span></button>
-    <button class="btn primary" id="exportBtn">書き出し・保存</button>
+    <a class="btn ibtn" href="./" title="一覧に戻る" aria-label="一覧に戻る"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 9.5L10 3.5l7 6"/><path d="M5 8.5V16.5h10V8.5"/></svg></a>
+    <button class="btn ibtn" id="projBtn" title="作品の一覧" aria-label="作品の一覧"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg><span id="projName" class="vh">作品</span></button>
+    <button class="btn primary ibtn" id="exportBtn" title="書き出し・保存" aria-label="書き出し・保存"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v9"/><path d="M6.5 8.5L10 12l3.5-3.5"/><path d="M4 13v3h12v-3"/></svg></button>
   </div>
 </header>
 
