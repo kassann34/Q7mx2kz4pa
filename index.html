@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2B3A8C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="アンビグラム工房">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>アンビグラム工房</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@900&family=Noto+Serif+JP:wght@900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 道具箱のふた。2つの作図台を同じ重さのカードで並べ、それぞれの型を小さな図で示す。 */
+:root{
+  --bg:#EDEFF4; --surface:#FFFFFF; --fg:#14151B; --muted:#5B6072; --line:#D4D7E1; --accent:#2B3A8C; --paper:#F7F8F4;
+  --f-display:"Dela Gothic One","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){:root{--bg:#101117;--surface:#191B23;--fg:#E7E8EF;--muted:#9A9FB3;--line:#2D303C;--accent:#8F9DF3;color-scheme:dark}}
+html{box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 32px;display:flex;flex-direction:column;gap:28px}
+h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(26px,5vw,36px);letter-spacing:.05em;line-height:1.2;text-wrap:balance}
+.lead{margin:6px 0 0;color:var(--muted);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+a.card{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;color:inherit;text-decoration:none;min-width:0}
+a.card:hover{border-color:var(--accent)}
+a.card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.fig{background:var(--paper);border-radius:10px;aspect-ratio:16/9;display:grid;place-items:center;max-width:100%}
+.fig svg{width:62%;height:auto}
+.card h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:20px;letter-spacing:.04em}
+.card p{margin:0;font-size:13.5px;color:var(--muted)}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.foot{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:16px}
+.foot p{margin:0}
+.state{font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>アンビグラム工房</h1>
+    <p class="lead">図地反転・図地渾然・重畳のための作図台</p>
+  </header>
+  <div class="cards">
+    <a class="card" href="zuchi.html">
+      <div class="fig" aria-hidden="true">
+        <svg viewBox="0 0 160 90"><g transform="translate(45 15)"><rect width="60" height="60" fill="#E8533A"/><rect x="0" y="0" width="20" height="40" fill="#F2B134"/><rect x="40" y="20" width="20" height="40" fill="#3FA34D"/><rect x="20" y="20" width="20" height="20" fill="#2B7BD6"/></g>
+        <g fill="none" stroke="#14151B" stroke-opacity=".25"><path d="M45 35h60M45 55h60M65 15v60M85 15v60"/></g></svg>
+      </div>
+      <h2>図地アンビグラム工房</h2>
+      <p>マスを色番号で塗り、nCr 通りの読みとガイドとの矛盾を確かめます。</p>
+      <div class="tags"><span>図地反転型</span><span>図地渾然型</span><span>ドット</span></div>
+    </a>
+    <a class="card" href="chojo.html">
+      <div class="fig" aria-hidden="true">
+        <svg viewBox="0 0 160 90"><path d="M52 20h44v22H66" fill="none" stroke="#1F5F8B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M108 70H64V48h30" fill="none" stroke="#3D9BCB" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="45" r="2.6" fill="#00A58E"/></svg>
+      </div>
+      <h2>重畳アンビグラム工房</h2>
+      <p>ひとつのパーツを描くと、並進・回転・映進で複製された姿がその場で見えます。</p>
+      <div class="tags"><span>重畳型</span><span>ペン描き</span><span>下書きレイヤー</span></div>
+    </a>
+  </div>
+  <div class="foot">
+    <p class="state" id="state">オフライン用の準備を確認しています…</p>
+    <p>作品はこの端末のブラウザの中だけに保存され、どこにも送られません。端末を移るときは、各道具の「書き出し・保存」からデータをコピーして読み込んでください。</p>
+    <p>iPad では Safari の共有ボタンから「ホーム画面に追加」すると、アプリとして開けます。</p>
+  </div>
+</div>
+<script>
+const st=document.getElementById('state');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{st.textContent='オフラインでも使えます。書体は一度表示した文字の分だけ端末に保存されます。';})
+  .catch(()=>{st.textContent='オフライン用の準備ができませんでした。インターネットにつながった状態で開き直してください。';});
+}else st.textContent='このブラウザはオフライン動作に対応していません。';
+</script>
+</body>
+</html>
