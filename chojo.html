@@ -82,7 +82,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lbtn{min-width:72px;max-width:120px}
 .lbtn span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .copybar{position:absolute;left:10px;bottom:10px;max-width:calc(100% - 250px);display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:5px 8px;box-shadow:0 2px 8px var(--shadow)}
-.copybar.off{opacity:.55}
+.copybar.off .cchips,.copybar.off .cblabel{opacity:.5}
+.petoggle{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer;display:grid;place-items:center;padding:0}
+.petoggle svg{width:24px;height:24px}
+.petoggle.erase{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.cbsep{width:1px;align-self:stretch;background:var(--line);flex:none}
+.gest{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px;margin:0}
+.gest dt{font-weight:700}.gest dd{margin:0;color:var(--muted)}
 .cblabel{font-size:10.5px;line-height:1.2;color:var(--muted);flex:none}
 .cchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}
 .cchips button{flex:none;width:38px;height:38px;border-radius:50%;border:3px solid;background:#fff;color:#15171E;font-family:var(--f-mono);font-weight:700;font-size:14px;cursor:pointer;padding:0}
@@ -210,7 +216,7 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
     </div>
     <div class="note" id="sampleNote" hidden><span>例として、ひとつのパーツを180°回転で2個並べています。「レイヤー」から線を全消去すると、自分のパーツを描き始められます。</span><button id="noteClose" aria-label="閉じる">✕</button></div>
     <div class="zoombox"><button id="zOut" aria-label="縮小">−</button><output id="zLabel">100%</output><button id="zIn" aria-label="拡大">＋</button><button id="zFit">全体</button></div>
-    <div class="copybar" id="copybar" role="group" aria-label="描くコピー"><span class="cblabel">描く<br>コピー</span><div class="cchips" id="cchips"></div></div>
+    <div class="copybar" id="copybar" role="group" aria-label="描くコピー"><button class="petoggle" id="peToggle" aria-label="ペンと消しゴムを切り替える" title="ペン／消しゴム（指で1回タップでも切替）"><svg id="peIcon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"></svg></button><span class="cbsep"></span><span class="cblabel">描く<br>コピー</span><div class="cchips" id="cchips"></div></div>
     <div class="lpop" id="lpop" hidden>
       <div class="lhead"><b>レイヤー</b><span class="sub">上ほど手前</span><button class="btn" id="lAdd">＋ 追加</button></div>
       <div class="llist" id="lList"></div>
@@ -275,6 +281,12 @@ textarea{height:100px;font-family:var(--f-mono);font-size:11px;resize:vertical}
         <label class="chk"><input type="checkbox" data-bind="grid">方眼を表示</label>
         <label class="chk"><input type="checkbox" data-bind="showAxis">軸と番号を表示</label>
         <label class="chk"><input type="checkbox" data-bind="pressure">ペンの筆圧で太さを変える</label>
+        <dl class="gest">
+          <dt>指で1回タップ</dt><dd>ペン ⇔ 消しゴム（Apple Pencil で描いているとき）</dd>
+          <dt>2本指タップ</dt><dd>元に戻す</dd>
+          <dt>3本指タップ</dt><dd>やり直す</dd>
+          <dt>2本指ドラッグ</dt><dd>移動・拡大縮小</dd>
+        </dl>
       </div>
     </details>
 
@@ -394,11 +406,14 @@ function syncUI(inputs=true){
   if(document.activeElement!==$('#brush'))$('#brush').value=sv;
   const d=$('#bdot');const sz=Math.max(3,Math.min(24,sv*V.z));d.style.width=d.style.height=sz+'px';d.style.background=sk==='eraseSize'?'transparent':'';d.style.border=sk==='eraseSize'?'1.5px solid var(--fg)':'';
   $('#layerName').textContent=L.name;
+  const er=S.tool==='erase';$('#peToggle').classList.toggle('erase',er);if($('#peIcon').dataset.k!==String(er)){$('#peIcon').innerHTML=er?ERASE_SVG:PEN_SVG;$('#peIcon').dataset.k=String(er);}
   $('#partInfo').textContent=S.layers.slice().reverse().map(l=>`${l.name}：${l.strokes.length}本`).join('　');
   renderLayers();
   if(inputs)syncInputs();
 }
 $('#cchips').addEventListener('click',e=>{const c=e.target.closest('[data-chip]');if(!c)return;S.drawOn=+c.dataset.chip;syncUI(false);draw();save();});
+$('#peToggle').onclick=togglePE;
+const PEN_SVG='<path d="M3 17l1.2-4.2L13.5 3.5l3 3-9.3 9.3z"/><path d="M11.5 5.5l3 3"/>',ERASE_SVG='<path d="M7 16l-3.5-3.5a1.5 1.5 0 010-2.1L10.4 3.5a1.5 1.5 0 012.1 0l4 4a1.5 1.5 0 010 2.1L10 16z"/><path d="M7 16h10"/><path d="M6 8l6 6"/>';
 $('#brush').addEventListener('input',e=>{S[sizeKey()]=+e.target.value;syncUI(false);save();});
 $('#cMinus').onclick=()=>{S.count=Math.max(2,S.count-1);syncUI();draw();save();};
 $('#cPlus').onclick=()=>{S.count=Math.min(24,S.count+1);syncUI();draw();save();};
@@ -575,13 +590,13 @@ $('#lDel').onclick=()=>{
 };
 
 /* ---------- input ---------- */
-const touches=new Map();let act=null,pinch=null,penSeen=false,spaceDown=false,hoverPt=null;
+const touches=new Map();let gest=null,act=null,pinch=null,penSeen=false,spaceDown=false,hoverPt=null;
 const local=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];};
 function startPinch(){const p=[...touches.values()];pinch={d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)||1,m:[(p[0].x+p[1].x)/2,(p[0].y+p[1].y)/2],z:V.z,ox:V.ox,oy:V.oy};}
 function updatePinch(){const p=[...touches.values()];if(p.length<2)return;const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),m=[(p[0].x+p[1].x)/2,(p[0].y+p[1].y)/2];
   const z=Math.max(.1,Math.min(12,pinch.z*d/pinch.d)),wx=(pinch.m[0]-pinch.ox)/pinch.z,wy=(pinch.m[1]-pinch.oy)/pinch.z;
   V.z=z;V.ox=m[0]-z*wx;V.oy=m[1]-z*wy;syncUI(false);draw();}
-function cancelDraw(){if(act&&act.type==='draw'){act.list.pop();undo.pop();updUndo();dirty=true;}act=null;draw();}
+function cancelDraw(){if(act&&act.type==='draw'){act.list.pop();undo.pop();redo.length=0;redo.push(...act.rs);updUndo();dirty=true;}act=null;draw();}
 function hitHandle(sx,sy){let best=null,bd=26;for(const h of handles()){const[a,b]=w2s(h.x,h.y),d=Math.hypot(a-sx,b-sy);if(d<bd){bd=d;best=h;}}return best;}
 function hitBadge(sx,sy){if(!(S.showAxis||S.tool==='axis'||S.tool==='hand'))return -1;for(let k=0;k<S.count;k++){const p=badgePos(k);if(p&&Math.hypot(p[0]-sx,p[1]-sy)<16)return k;}return -1;}
 function addPt(e,st){
@@ -593,9 +608,12 @@ function addPt(e,st){
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{
   if(!lpop.hidden)togglePop(false);
-  if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(e.pointerType==='touch'){
+    if(!gest)gest={t0:performance.now(),max:0,moved:false,v:{z:V.z,ox:V.ox,oy:V.oy},start:new Map()};
+    gest.start.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    touches.set(e.pointerId,{x:e.clientX,y:e.clientY});gest.max=Math.max(gest.max,touches.size);
     if(touches.size===2){cancelDraw();startPinch();return;}if(touches.size>2)return;}
-  if(e.pointerType==='pen'&&!penSeen){penSeen=true;if(!S.penOnly){S.penOnly=true;toast('ペンを検出しました。指は移動と拡大縮小に使い、描くのはペンだけにします。');}}
+  if(e.pointerType==='pen'&&!penSeen){penSeen=true;if(!S.penOnly){S.penOnly=true;toast('ペンを検出しました。指は移動と拡大縮小用になります。指で1回タップするとペンと消しゴムが切り替わります。',5200);}}
   e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}
   const[sx,sy]=local(e);
   const panReq=S.tool==='hand'||e.button===1||spaceDown||(e.pointerType==='touch'&&S.penOnly);
@@ -605,13 +623,15 @@ cv.addEventListener('pointerdown',e=>{
   if(panReq||S.tool==='axis'||e.button===2){act={type:'pan',id:e.pointerId,sx,sy,ox:V.ox,oy:V.oy};return;}
   const Lr=curL();
   if(!Lr.show){Lr.show=true;toast(`隠れていた「${Lr.name}」を表示しました。`);layersChanged();}
-  pushUndo();const list=Lr.strokes,st={t:S.tool==='erase'?'e':'p',w:S[sizeKey()],pr:S.pressure&&e.pointerType==='pen',p:[]};
+  const rs=redo.slice();pushUndo();const list=Lr.strokes,st={t:S.tool==='erase'?'e':'p',w:S[sizeKey()],pr:S.pressure&&e.pointerType==='pen',p:[]};
   if(!Lr.rep)st.ws=true;
-  list.push(st);addPt(e,st);act={type:'draw',id:e.pointerId,st,list};$('#sampleNote').hidden=true;draw();
+  list.push(st);addPt(e,st);act={type:'draw',id:e.pointerId,st,list,rs};$('#sampleNote').hidden=true;draw();
 });
 const snapV=v=>S.snap?Math.round(v/10)*10:Math.round(v);
 cv.addEventListener('pointermove',e=>{
-  if(e.pointerType==='touch'&&touches.has(e.pointerId)){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pinch){updatePinch();return;}}
+  if(e.pointerType==='touch'&&touches.has(e.pointerId)){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const g0=gest&&gest.start.get(e.pointerId);if(g0&&Math.hypot(e.clientX-g0.x,e.clientY-g0.y)>12)gest.moved=true;
+    if(pinch){updatePinch();return;}}
   const[sx,sy]=local(e);
   if(e.pointerType!=='touch'){hoverPt=[sx,sy];if(!act)draw();}
   if(!act||e.pointerId!==act.id)return;
@@ -627,11 +647,22 @@ function dragHandle(id,wx,wy){
   else if(id==='ga'){let a=Math.atan2(S.glide.y-wy,S.glide.x-wx)*180/Math.PI;a=S.snap?Math.round(a/15)*15:Math.round(a);S.glide.ang=((a%360)+360)%360;}
   else if(id==='gs'){const f=rad(S.glide.ang);S.glide.shift=snapV((wx-S.glide.x)*Math.cos(f)+(wy-S.glide.y)*Math.sin(f));}
 }
+function endGesture(cancelled){
+  const g=gest;gest=null;if(!g||cancelled||g.moved||performance.now()-g.t0>350)return;
+  if(g.max>=2){V.z=g.v.z;V.ox=g.v.ox;V.oy=g.v.oy;
+    if(g.max>=3){if(redo.length){doRedo();toast('やり直しました',1000);}}
+    else{if(undo.length){doUndo();toast('元に戻しました',1000);}else toast('これ以上戻せません',1000);}
+    syncUI(false);draw();return;}
+  if(S.penOnly&&(S.tool==='pen'||S.tool==='erase'))togglePE();
+}
+function togglePE(){S.tool=S.tool==='erase'?'pen':'erase';syncUI();draw();save();toast(S.tool==='erase'?'消しゴム':'ペン',800);}
 function endPtr(e){
-  if(e.pointerType==='touch'){touches.delete(e.pointerId);if(pinch&&touches.size<2){pinch=null;return;}}
+  if(e.pointerType==='touch'){touches.delete(e.pointerId);
+    if(!touches.size)endGesture(e.type==='pointercancel');
+    if(pinch&&touches.size<2){pinch=null;return;}}
   if(!act||e.pointerId!==act.id)return;
   if(act.type==='draw'&&e.type==='pointercancel'){cancelDraw();return;}
-  if(act.type==='draw'&&!act.st.p.length){act.list.pop();undo.pop();updUndo();}
+  if(act.type==='draw'&&!act.st.p.length){act.list.pop();undo.pop();redo.length=0;redo.push(...act.rs);updUndo();}
   act=null;syncUI(false);dirty=true;draw();save();
 }
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
@@ -722,7 +753,7 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')$('#modal').hi
 $('#copyJson').onclick=async()=>{const t=$('#mJson');t.value=dataJSON();try{await navigator.clipboard.writeText(t.value);toast('作品データをコピーしました。');}catch(_){t.focus();t.select();toast('自動でコピーできませんでした。選択された文字をコピーしてください。');}};
 $('#loadJson').onclick=()=>{try{const o=JSON.parse($('#mJson').value);pushUndo();applyData(o);syncUI();buildExport();fit();toast('作品データを読み込みました。');}catch(_){toast('読み込めませんでした。書き出したデータを丸ごと貼り付けてください。');}};
 let st=0;function save(){clearTimeout(st);st=setTimeout(()=>{try{localStorage.setItem(KEY,dataJSON());}catch(_){}},400);}
-let tt=0;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3400);}
+let tt=0;function toast(m,ms=3400){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,ms);}
 $('#noteClose').onclick=()=>$('#sampleNote').hidden=true;
 $('#gFont').innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
 
