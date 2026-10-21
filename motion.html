@@ -295,7 +295,9 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
         <div class="field"><label for="fX">左右</label><input type="range" id="fX" min="-0.5" max="0.5" step="0.002" data-bind="fin.x"><output data-out="fin.x" data-pct></output></div>
         <div class="field"><label for="fY">上下</label><input type="range" id="fY" min="-0.5" max="0.5" step="0.002" data-bind="fin.y"><output data-out="fin.y" data-pct></output></div>
         <label class="chk"><input type="checkbox" data-bind="fin.overlay">位置合わせのため、プレビューに半透明で重ねる</label>
-        <p class="desc">重ねている間は、浮き上がる直前の場面で止まります。作品と完成画像の形が重なるように、大きさと位置を動かしてください。</p>
+        <p class="desc">重ねて表示するのは、止めているときだけです（再生中と書き出す動画には出ません）。浮き上がる直前の場面で、作品と完成画像の形が重なるように大きさと位置を動かしてください。</p>
+        <div class="field"><label for="fPre">着地前の濃さ</label><input type="range" id="fPre" min="0" max="1" step="0.01" data-bind="fin.pre"><output data-out="fin.pre" data-pct></output></div>
+        <p class="desc">動画の間、裏の完成画像をどれだけ見せておくかです。0% なら着地の瞬間まで完全に隠れています。</p>
         <div class="field"><label for="fLift">浮き上がり</label><input type="range" id="fLift" min="0" max="0.25" step="0.01" data-bind="fin.lift"><output data-out="fin.lift" data-pct></output></div>
         <div class="opt"><span>揺れ</span><div class="seg"><button data-set="fin.shake" data-val="none">なし</button><button data-set="fin.shake" data-val="low">弱め</button><button data-set="fin.shake" data-val="mid">ふつう</button><button data-set="fin.shake" data-val="high">強め</button></div></div>
         <div class="field"><label for="fFade">消える時間</label><input type="range" id="fFade" min="0.15" max="2" step="0.05" data-bind="fin.fade"><output data-out="fin.fade" data-unit="秒"></output></div>
@@ -332,7 +334,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
   order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,fixedShow:'always',
-  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
+  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
 let SH=[]; // shapes
@@ -552,7 +554,7 @@ function finState(t,T,W,H){
   let dx=0,dy=0;const amp={none:0,low:.006,mid:.013,high:.024}[S.fin.shake]*Math.min(W,H);
   if(u>imp&&amp){const v=u-imp,a=amp*Math.exp(-v*7);dx=a*Math.sin(v*57);dy=a*.75*Math.cos(v*43);}
   const elemA=u<imp?1:1-EASE.smooth(clamp((u-imp)/Math.max(.05,S.fin.fade)));
-  const imgA=EASE.smooth(clamp((u-imp+.06)/.3));
+  const pre=S.fin.pre||0,imgA=pre+(1-pre)*EASE.smooth(clamp((u-imp+.06)/.3));
   return{s,dx,dy,elemA,imgA,ov:1+2.2*amp/Math.min(W,H)};
 }
 function drawElements(x,t,T,W,H){
@@ -562,6 +564,7 @@ function drawElements(x,t,T,W,H){
 let layerC=null;
 function frame(x,t,W,H){
   const T=timeline();t=clamp(t,0,T.end);const F=finState(t,T,W,H);
+  if(!F&&finOn()&&S.fin.pre>0){paintBg(x,W,H);x.save();x.globalAlpha=S.fin.pre;drawFinalImg(x,W,H);x.restore();frameArt(x,t,W,H,true);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
   if(!F){frameArt(x,t,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
   const C=camera(W,H);if(!C)return;
   withPre(x,[F.ov,0,0,F.ov,W/2*(1-F.ov)+F.dx,H/2*(1-F.ov)+F.dy],()=>paintBg(x,W,H));
@@ -673,7 +676,7 @@ function renderPlay(W,H,dpr){
   const pw=Math.round(fw*dpr),ph=Math.round(fh*dpr);if(!off||off.width!==pw||off.height!==ph){off=document.createElement('canvas');off.width=pw;off.height=ph;}
   // 書き出しと同じ座標で描き、縮めて表示
   frameScaled(off.getContext('2d'),playT,aw,ah,pw/aw);
-  if(S.fin.overlay&&S.finImg){const o=off.getContext('2d');o.save();withPre(o,[pw/aw,0,0,pw/aw,0,0],()=>{o.globalAlpha=.5;drawFinalImg(o,aw,ah);});o.restore();}
+  if(S.fin.overlay&&S.finImg&&!playing){const o=off.getContext('2d');o.save();withPre(o,[pw/aw,0,0,pw/aw,0,0],()=>{o.globalAlpha=.5;drawFinalImg(o,aw,ah);});o.restore();}
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(off,Math.round(fx*dpr),Math.round(fy*dpr));
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;ctx.strokeRect(fx-.5,fy-.5,fw+1,fh+1);
 }
