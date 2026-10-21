@@ -96,6 +96,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .seg button:last-child{border-right:0}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
 .seg.wrap{flex-wrap:wrap}.seg.wrap button{flex:1 0 33%;border-bottom:1px solid var(--line)}.seg.wrap button:nth-child(3n){border-right:0}.seg.wrap button:nth-last-child(-n+3){border-bottom:0}
+.cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}.cols label{display:flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:var(--surface-2)}.cols input[type=color]{width:30px;height:24px;flex:none}
 .roleseg button{display:flex;align-items:center;justify-content:center;gap:6px}
 .roleseg i{width:12px;height:12px;border-radius:3px;display:block;flex:none}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -248,13 +249,21 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
     <details class="panel" open>
       <summary><span class="num">5</span>色と完成のエフェクト</summary>
       <div class="pb">
-        <div class="opt"><span>説明中の色</span><div class="seg"><button data-set="explain" data-val="split">色分け</button><button data-set="explain" data-val="orig">元の色</button></div></div>
+        <div class="opt"><span>作品の大きさ</span><div class="field" style="grid-template-columns:minmax(0,1fr) 44px"><input type="range" id="aScale" min="0.2" max="1.1" step="0.01" data-bind="artScale" aria-label="作品の大きさ"><output data-out="artScale" data-pct></output></div></div>
+        <div class="opt"><span>上下の位置</span><div class="field" style="grid-template-columns:minmax(0,1fr) 44px"><input type="range" id="aY" min="-0.35" max="0.35" step="0.01" data-bind="artY" aria-label="上下の位置"><output data-out="artY" data-pct></output></div></div>
+        <div class="opt"><span>動く間の色</span><div class="seg"><button data-set="explain" data-val="split">指定の色</button><button data-set="explain" data-val="orig">元の色</button></div></div>
+        <div class="cols" id="colsBox"></div>
         <div class="opt"><span>完成の色</span><div class="row" style="flex-wrap:nowrap"><div class="seg" style="flex:1"><button data-set="finalMode" data-val="mono">単色</button><button data-set="finalMode" data-val="orig">元の色</button></div><input type="color" data-bind="finalColor" aria-label="完成の色"></div></div>
         <div class="opt" style="align-items:start"><span style="padding-top:6px">エフェクト</span><div class="seg wrap"><button data-set="effect" data-val="recolor">塗り替え</button><button data-set="effect" data-val="wipe">ワイプ</button><button data-set="effect" data-val="radial">広がる</button><button data-set="effect" data-val="shine">光が走る</button><button data-set="effect" data-val="glow">光る</button><button data-set="effect" data-val="none">なし</button></div></div>
         <div class="field"><label for="effDur">エフェクト</label><input type="range" id="effDur" min="0.3" max="3" step="0.1" data-bind="effDur"><output data-out="effDur" data-unit="秒"></output></div>
         <label class="chk"><input type="checkbox" data-bind="pop">完成の瞬間に軽く弾ませる</label>
         <div class="field"><label for="endHold">最後の静止</label><input type="range" id="endHold" min="0.5" max="5" step="0.1" data-bind="endHold"><output data-out="endHold" data-unit="秒"></output></div>
-        <div class="opt"><span>背景</span><div class="row"><input type="color" data-bind="bg" aria-label="背景色"><button class="btn" data-bgp="#F7F8F4" style="min-height:30px">紙</button><button class="btn" data-bgp="#FFFFFF" style="min-height:30px">白</button><button class="btn" data-bgp="#14151B" style="min-height:30px">黒</button></div></div>
+        <div class="opt"><span>背景の色</span><div class="row"><input type="color" data-bind="bg" aria-label="背景色"><button class="btn" data-bgp="#F7F8F4" style="min-height:30px">紙</button><button class="btn" data-bgp="#FFFFFF" style="min-height:30px">白</button><button class="btn" data-bgp="#14151B" style="min-height:30px">黒</button></div></div>
+        <div class="opt" style="align-items:start"><span style="padding-top:6px">背景の画像</span><div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+          <div class="btns"><label class="btn" for="bgFile">画像を選ぶ</label><button class="btn" id="bgClear">外す</button></div>
+          <input type="file" id="bgFile" accept="image/*" hidden>
+          <div class="seg" id="bgFitSeg"><button data-set="bgFit" data-val="cover">画面を覆う</button><button data-set="bgFit" data-val="contain">全体を収める</button></div>
+          <span class="desc" id="bgInfo">画像なし</span></div></div>
       </div>
     </details>
 
@@ -263,13 +272,14 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
       <div class="pb">
         <label class="chk"><input type="checkbox" data-bind="text.on">完成のあとに題字と型名を出す</label>
         <div class="opt"><span>題字</span><input type="text" data-bind="text.title" placeholder="例：部内" maxlength="24"></div>
-        <div class="opt"><span>型名</span><input type="text" id="labelIn" data-bind="text.label" maxlength="40"></div>
-        <label class="chk"><input type="checkbox" data-bind="text.autoLabel">型名を変換から自動でつける</label>
+        <div class="opt"><span>型名</span><input type="text" data-bind="text.label" placeholder="例：重畳型（回転）" maxlength="40"></div>
         <div class="opt"><span>書体</span><div class="seg"><button data-set="text.font" data-val="serif">明朝</button><button data-set="text.font" data-val="sans">ゴシック</button><button data-set="text.font" data-val="dela">デラゴシック</button></div></div>
-        <div class="opt"><span>位置</span><div class="seg"><button data-set="text.pos" data-val="bottom">下</button><button data-set="text.pos" data-val="top">上</button><button data-set="text.pos" data-val="right">右・縦書き</button></div></div>
         <div class="opt"><span>出し方</span><div class="seg"><button data-set="text.anim" data-val="fade">ふわっと</button><button data-set="text.anim" data-val="chars">1文字ずつ</button><button data-set="text.anim" data-val="line">線から</button></div></div>
-        <div class="field"><label for="tSize">大きさ</label><input type="range" id="tSize" min="0.6" max="1.6" step="0.05" data-bind="text.size"><output data-out="text.size" data-unit="×"></output></div>
-        <p class="desc">文字が出るときに、作品が少し動いて場所を空けます。</p>
+        <div class="field"><label for="tSize">題字の大きさ</label><input type="range" id="tSize" min="0.4" max="2.5" step="0.05" data-bind="text.titleSize"><output data-out="text.titleSize" data-unit="×"></output></div>
+        <div class="field"><label for="lSize">型名の大きさ</label><input type="range" id="lSize" min="0.4" max="2.5" step="0.05" data-bind="text.labelSize"><output data-out="text.labelSize" data-unit="×"></output></div>
+        <div class="field"><label for="tGap">作品との間</label><input type="range" id="tGap" min="0" max="3" step="0.05" data-bind="text.gap"><output data-out="text.gap" data-unit="×"></output></div>
+        <div class="opt"><span>文字の色</span><input type="color" data-bind="text.color" aria-label="文字の色"></div>
+        <p class="desc">題字と型名は作品のすぐ下に出ます。文字がはみ出すときは、⑤の「作品の大きさ」や「上下の位置」で調整してください。</p>
       </div>
     </details>
 
@@ -302,7 +312,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
   order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,fixedShow:'always',
-  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',autoLabel:true,font:'serif',pos:'bottom',anim:'chars',size:1},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
+  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
 let SH=[]; // shapes
@@ -430,8 +440,9 @@ function copyProgress(k,t,T){
   return clamp((t-T.moveStart)/S.moveDur);
 }
 function copyA(k,p){const e=EASE[S.ease](p);return S.order==='seq'?(k-1)+e:k*e;}
+const colOf=k=>k===0?S.cols.part:(S.cols.copies[k-1]||PAL[k%PAL.length]);
 function colorsFor(sh,role,k,mix){ // mix: 0=完成の色, 1=説明中の色
-  const exF=S.explain==='split'?(role==='fixed'?FIXEDC:PAL[k%PAL.length]):sh.fill,exS=S.explain==='split'?(role==='fixed'?FIXEDC:PAL[k%PAL.length]):sh.stroke;
+  const sc=role==='fixed'?S.cols.fixed:colOf(k);const exF=S.explain==='split'?sc:sh.fill,exS=S.explain==='split'?sc:sh.stroke;
   const fnF=S.finalMode==='mono'?S.finalColor:sh.fill,fnS=S.finalMode==='mono'?S.finalColor:sh.stroke;
   return[lerpC(fnF,exF,mix),lerpC(fnS,exS,mix)];
 }
@@ -449,23 +460,9 @@ function scene(x,base,t,T,mix,fixedA){
   for(const sh of parts){const[f,s]=colorsFor(sh,'part',0,mix);drawShape(x,base,I,sh,f,s,1);}
 }
 function eachInstance(t,T,fn){const parts=byRole('part'),fixed=byRole('fixed');for(const sh of fixed)fn(sh,I);for(let k=0;k<S.count;k++){const M=Mint(k);for(const sh of parts)fn(sh,M);}}
-function autoLabel(){
-  if(S.mode==='trans')return`重畳型　並進 ×${S.count}`;
-  if(S.mode==='rot')return`重畳型　回転 ${Math.round(Math.abs(angStep())*10)/10}° ×${S.count}`;
-  return Math.abs(S.glide.shift)<1e-6?`重畳型　鏡映 ×${S.count}`:`重畳型　映進 ×${S.count}`;
-}
-function textOn(){if(!S.text.on)return null;const title=(S.text.title||'').trim(),label=(S.text.autoLabel?autoLabel():(S.text.label||'')).trim();return title||label?{title,label}:null;}
+function textOn(){if(!S.text.on)return null;const title=(S.text.title||'').trim(),label=(S.text.label||'').trim();return title||label?{title,label}:null;}
 const TFONT={serif:'"Noto Serif JP", "Hiragino Mincho ProN", serif',sans:'"Noto Sans JP", "Hiragino Sans", sans-serif',dela:'"Dela Gothic One", "Hiragino Sans", sans-serif'};
 const tfont=(px,w)=>`${S.text.font==='dela'?400:(w||700)} ${px}px ${TFONT[S.text.font]}`;
-function layout(W,H,tx){
-  if(!tx)return{fw:.78,fh:.78,cx:.5,cy:.5};
-  const z=S.text.size;
-  if(S.text.pos==='right')return{fw:.66-.1*(z-1),fh:.8,cx:.39-.05*(z-1),cy:.5};
-  const wide=W/H>1.3,fh=(wide?.52:.6)-.08*(z-1);
-  if(S.text.pos==='top')return{fw:.78,fh,cx:.5,cy:(wide?.62:.6)+.04*(z-1)};
-  return{fw:.78,fh,cx:.5,cy:(wide?.37:.41)-.04*(z-1)};
-}
-function textColor(){if(S.finalMode==='mono')return S.finalColor;const c=rgb(S.bg),l=(.299*c[0]+.587*c[1]+.114*c[2])/255;return l>.5?'#15171E':'#F3F4F7';}
 const ROT_CH=/[ー－—―〜～\-~(（)）「」『』【】…:：]/;
 function drawChars(x,str,px,cx,cy,sp,vert,fx){
   const cs=Array.from(str);if(!cs.length)return;x.textBaseline='middle';
@@ -483,12 +480,10 @@ function drawChars(x,str,px,cx,cy,sp,vert,fx){
     p+=L+sp;});return tot;
 }
 function drawText(x,W,H,t,T,tx,L){
-  x.setTransform(1,0,0,1,0,0);const u=Math.min(W,H),z=S.text.size,col=textColor(),vert=S.text.pos==='right';
-  const tp=Math.round(u*.085*z),lp=Math.round(u*.032*z),gap=tp*.85;
-  let tX,tY,lX,lY;
-  if(vert){tX=W*.84;tY=H*.5;lX=tX-tp*.95-lp*.4;lY=H*.5;}
-  else if(S.text.pos==='top'){tX=W/2;tY=H*(.13+.02*(z-1));lX=W/2;lY=tY+gap;}
-  else{tX=W/2;tY=H*(.78-.02*(z-1));lX=W/2;lY=tY+gap;}
+  x.setTransform(1,0,0,1,0,0);const u=Math.min(W,H),col=S.text.color||'#15171E',vert=false;
+  const tp=Math.round(u*.075*S.text.titleSize),lp=Math.round(u*.03*S.text.labelSize),g0=u*.045*S.text.gap;
+  // 作品のすぐ下に題字、その下に型名
+  const tX=W/2,tY=tx.title?L.bottom+g0+tp*.55:0;let lX=W/2,lY=tx.title?tY+tp*.62+lp*.95:L.bottom+g0+lp*.6;
   x.fillStyle=col;
   const an=S.text.anim,t0=T.textStart;
   // 題字
@@ -502,26 +497,32 @@ function drawText(x,W,H,t,T,tx,L){
   }
   // 型名
   if(tx.label){x.font=tfont(lp,700);const q=EASE.smooth(clamp((t-T.labelStart)/.7));
-    if(!tx.title){lX=tX;lY=tY;}
     x.save();x.globalAlpha=1;drawChars(x,tx.label,lp,lX,lY,lp*.12,vert,()=>({a:q*.72,dy:(1-q)*lp*.4}));x.restore();}
   x.globalAlpha=1;
 }
 let partC=null;
+function camera(W,H){
+  const b=finalBox();if(!b)return null;
+  const bw=Math.max(1,b.x1-b.x0),bh=Math.max(1,b.y1-b.y0),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;
+  const sc=Math.min(W*S.artScale/bw,H*S.artScale/bh),ox=W/2,oy=H*(.5+S.artY);
+  return{b,sc,ox,oy,base:[sc,0,0,sc,ox-sc*cx,oy-sc*cy],top:oy-sc*bh/2,bottom:oy+sc*bh/2};
+}
+let bgImage=null;
+function paintBg(x,W,H){
+  x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle=S.bg;x.fillRect(0,0,W,H);
+  if(S.bgImg&&bgImage&&bgImage.complete&&bgImage.naturalWidth){const iw=bgImage.naturalWidth,ih=bgImage.naturalHeight,r=S.bgFit==='cover'?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih);
+    x.drawImage(bgImage,(W-iw*r)/2,(H-ih*r)/2,iw*r,ih*r);}
+}
 function frame(x,t,W,H){
   frameArt(x,t,W,H);const T=timeline();t=clamp(t,0,T.end);const tx=textOn();
-  if(tx&&t>=T.textStart){x.save();drawText(x,W,H,t,T,tx,layout(W,H,tx));x.restore();}
+  if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}
 }
 function frameArt(x,t,W,H){
   const T=timeline();t=clamp(t,0,T.end);
-  x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle=S.bg;x.fillRect(0,0,W,H);
-  const b=finalBox();if(!b)return;
-  const bw=Math.max(1,b.x1-b.x0),bh=Math.max(1,b.y1-b.y0),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2;
-  const tx=textOn(),L=layout(W,H,tx);const k=tx?EASE.smooth(clamp((t-T.textStart)/.8)):0;
-  const fw=W*(.78+(L.fw-.78)*k),fh=H*(.78+(L.fh-.78)*k),ox=W*(.5+(L.cx-.5)*k),oy=H*(.5+(L.cy-.5)*k);
-  const sc=Math.min(fw/bw,fh/bh);
-  let base=[sc,0,0,sc,ox-sc*cx,oy-sc*cy];
+  paintBg(x,W,H);
+  const C=camera(W,H);if(!C)return;const b=C.b,sc=C.sc;let base=C.base;
   const e=clamp((t-T.effStart)/S.effDur);
-  if(S.pop&&e>0&&e<1){const s=1+.04*Math.sin(Math.PI*e);base=mul([s,0,0,s,W/2*(1-s),H/2*(1-s)],base);}
+  if(S.pop&&e>0&&e<1){const s=1+.04*Math.sin(Math.PI*e);base=mul([s,0,0,s,C.ox*(1-s),C.oy*(1-s)],base);}
   // 色の混ざり具合
   let mix=1;if(S.introFull&&t<T.splitEnd)mix=clamp((t-T.fullEnd)/(T.splitEnd-T.fullEnd));
   let fixedA=1;
@@ -531,7 +532,7 @@ function frameArt(x,t,W,H){
     const fade=1-clamp((t-T.moveEnd)/.6);
     if(fade>0){x.save();x.setTransform(...base);x.lineWidth=2/sc;x.setLineDash([6/sc,6/sc]);x.lineCap='round';
       for(let k=1;k<S.count;k++){const p=copyProgress(k,t,T);if(p<=0)continue;const a1=copyA(k,p),a0=S.order==='seq'?k-1:0;
-        x.strokeStyle=S.explain==='split'?PAL[k%PAL.length]:'#888';x.globalAlpha=.75*fade*(S.order==='seq'&&p>=1?1-clamp((t-(T.moveStart+(k-1)*(S.moveDur+T.gap)+S.moveDur))/.8):1);
+        x.strokeStyle=S.explain==='split'?colOf(k):'#888';x.globalAlpha=.75*fade*(S.order==='seq'&&p>=1?1-clamp((t-(T.moveStart+(k-1)*(S.moveDur+T.gap)+S.moveDur))/.8):1);
         if(x.globalAlpha<=0)continue;x.beginPath();const steps=Math.max(2,Math.ceil((a1-a0)*40));
         for(let i=0;i<=steps;i++){const[px,py]=ap(Mf(a0+(a1-a0)*i/steps),partC.x,partC.y);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();}
       x.restore();x.globalAlpha=1;}
@@ -563,7 +564,7 @@ function frameArt(x,t,W,H){
   if(S.effect==='wipe'){const L=b.x0*sc+base[4]-20,R=b.x1*sc+base[4]+20;x.rect(0,0,L+(R-L)*ee,H);}
   else{let o=[W/2,H/2];if(S.mode==='rot'){o=ap(base,S.rot.cx,S.rot.cy);}else if(partC){o=ap(base,partC.x,partC.y);}
     const R=Math.hypot(Math.max(o[0],W-o[0]),Math.max(o[1],H-o[1]));x.arc(o[0],o[1],R*ee,0,Math.PI*2);}
-  x.clip();x.fillStyle=S.bg;x.fillRect(0,0,W,H);scene(x,base,t,T,0,fixedA);x.restore();
+  x.clip();paintBg(x,W,H);scene(x,base,t,T,0,fixedA);x.restore();
 }
 
 /* ---------- edit view ---------- */
@@ -592,7 +593,7 @@ function renderEdit(W,H,dpr){
   });
   // 変換先（点線）
   const parts=byRole('part');
-  for(let k=1;k<S.count;k++){const M=Mint(k);for(const sh of parts){ctx.setTransform(...mul(base,mul(M,sh.m)));ctx.lineWidth=1.6/V.z/Math.hypot(sh.m[0],sh.m[1])*1;ctx.setLineDash([5/V.z,4/V.z]);ctx.strokeStyle=PAL[k%PAL.length];ctx.stroke(sh.p);}}
+  for(let k=1;k<S.count;k++){const M=Mint(k);for(const sh of parts){ctx.setTransform(...mul(base,mul(M,sh.m)));ctx.lineWidth=1.6/V.z/Math.hypot(sh.m[0],sh.m[1])*1;ctx.setLineDash([5/V.z,4/V.z]);ctx.strokeStyle=colOf(k);ctx.stroke(sh.p);}}
   ctx.setLineDash([]);ctx.setTransform(dpr,0,0,dpr,0,0);
   // 軸
   ctx.strokeStyle=AXIS;ctx.fillStyle=AXIS;ctx.lineWidth=1.6;
@@ -740,8 +741,8 @@ document.querySelectorAll('[data-bind]').forEach(el=>{
     setP(p,v);if(p==='rot.angle')S.rot.auto=false;if(p==='rot.auto'&&v)S.rot.angle=r2(360/S.count);syncOut();changed();});
   if(el.type==='color')el.addEventListener('input',()=>{setP(p,el.value);changed();});
 });
-function syncOut(){document.querySelectorAll('[data-out]').forEach(o=>o.textContent=(Math.round(getP(o.dataset.out)*10)/10)+(o.dataset.unit||''));}
-function syncInputs(){document.querySelectorAll('[data-bind]').forEach(el=>{if(el===document.activeElement||el.id==='labelIn'&&S.text.autoLabel)return;const v=getP(el.dataset.bind);if(el.type==='checkbox')el.checked=!!v;else el.value=typeof v==='number'?r2(v):v;});syncOut();}
+function syncOut(){document.querySelectorAll('[data-out]').forEach(o=>{const v=getP(o.dataset.out);o.textContent='pct' in o.dataset?Math.round(v*100)+'%':(Math.round(v*100)/100)+(o.dataset.unit||'');});}
+function syncInputs(){document.querySelectorAll('[data-bind]').forEach(el=>{if(el===document.activeElement)return;const v=getP(el.dataset.bind);if(el.type==='checkbox')el.checked=!!v;else el.value=typeof v==='number'?r2(v):v;});syncOut();}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-set]');if(!b)return;const k=b.dataset.set;setP(k,b.dataset.val);
   if(k==='view'){pause();if(S.view==='play')setT(playT>=timeline().end-.01||playT===0?timeline().end:playT);}
   syncUI();changed();});
@@ -755,7 +756,8 @@ function syncUI(){
   const c={part:0,copy:0,fixed:0};S.roles.forEach(r=>c[r]++);$('#roleCounts').textContent=`パーツ ${c.part}　複製 ${c.copy}　固定 ${c.fixed}`;
   $('#hint').textContent=S.view==='edit'?(SH.length?`図形をタップして「${{part:'パーツ',copy:'複製',fixed:'固定'}[S.brush]}」にします（もう一度タップで固定に戻す）。ドラッグで移動、2本指・Ctrl＋ホイールで拡大。`:'右の①から SVG を読み込んでください。'):'画面をタップで再生・一時停止。';
   $('#stageInfo').textContent=S.name?`「${S.name}」`:'';
-  const li=$('#labelIn');li.disabled=S.text.autoLabel;if(S.text.autoLabel)li.value=autoLabel();
+  buildCols();$('#colsBox').style.display=S.explain==='split'?'grid':'none';
+  $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
   ensureFonts();
   syncInputs();renderPhases();
   if(S.view==='play'){const T=timeline();if(playT>T.end)playT=T.end;$('#tcode').textContent=`${playT.toFixed(1)} / ${T.end.toFixed(1)} 秒`;$('#scrub').value=Math.round(playT/T.end*1000);}
@@ -779,7 +781,7 @@ const drop=$('#drop');
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));
 stage.addEventListener('dragover',e=>e.preventDefault());stage.addEventListener('drop',e=>{e.preventDefault();readFile(e.dataTransfer.files[0]);});
-function loadSample(){loadSVG(SAMPLE,'サンプル',['part','copy','fixed']);if(!S.text.title)S.text.title='重畳';S.mode='rot';S.count=2;S.rot={cx:200,cy:150,angle:180,auto:true};syncUI();}
+function loadSample(){loadSVG(SAMPLE,'サンプル',['part','copy','fixed']);if(!S.text.title){S.text.title='重畳';S.text.label='重畳型　回転';}S.mode='rot';S.count=2;S.rot={cx:200,cy:150,angle:180,auto:true};syncUI();}
 $('#sampleBtn').onclick=()=>{loadSample();changed();toast('サンプルを読み込みました。');};
 
 /* ---------- export ---------- */
@@ -818,7 +820,7 @@ $('#shareBtn').onclick=async()=>{if(!outBlob)return;const f=new File([outBlob],o
 $('#dlBtn').onclick=()=>{if(!outURL)return;const a=document.createElement('a');a.href=outURL;a.download=outName();document.body.appendChild(a);a.click();a.remove();};
 
 /* ---------- storage ---------- */
-const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','fixedShow','explain','finalMode','finalColor','effect','effDur','text','pop','endHold','bg','aspect','brush'];
+const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','pop','endHold','bg','aspect','brush'];
 let DB=null;
 function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('motion-kobo')||'null'));}catch(_){res(null);}return;}
@@ -826,6 +828,23 @@ function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorag
 function kvPut(o){if(!DB){try{localStorage.setItem('motion-kobo',JSON.stringify(o));}catch(_){}return;}try{DB.transaction('kv','readwrite').objectStore('kv').put(o,'current');}catch(_){}}
 let st=0;function changed(){clearTimeout(st);st=setTimeout(()=>{const o={};KEYS.forEach(k=>o[k]=S[k]);kvPut(JSON.parse(JSON.stringify(o)));},400);renderPhases();draw();}
 
+function buildCols(){
+  const box=$('#colsBox'),n=S.count,key=n+'|'+S.cols.part+S.cols.fixed+S.cols.copies.slice(0,n-1).join();if(box.dataset.k===key)return;box.dataset.k=key;
+  const items=[['part','元のパーツ',S.cols.part]];for(let k=1;k<n;k++)items.push([String(k),`動く ${k}`,colOf(k)]);items.push(['fixed','固定',S.cols.fixed]);
+  box.innerHTML=items.map(([id,l,c])=>`<label><input type="color" data-col="${id}" value="${rgbHex(c)}">${l}</label>`).join('');
+}
+function rgbHex(c){const r=rgb(c);return'#'+r.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');}
+$('#colsBox').addEventListener('input',e=>{const i=e.target.closest('[data-col]');if(!i)return;const id=i.dataset.col;
+  if(id==='part')S.cols.part=i.value;else if(id==='fixed')S.cols.fixed=i.value;else{const k=+id;while(S.cols.copies.length<k)S.cols.copies.push(PAL[(S.cols.copies.length+1)%PAL.length]);S.cols.copies[k-1]=i.value;}
+  $('#colsBox').dataset.k='';changed();});
+$('#bgFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{
+    // 大きすぎる画像は縮めて保存する
+    const m=2400,r=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));let url=String(rd.result);
+    if(r<1){const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*r);c.height=Math.round(img.naturalHeight*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);url=c.toDataURL('image/jpeg',.9);}
+    setBg(url);changed();syncUI();toast('背景の画像を設定しました。');};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
+$('#bgClear').onclick=()=>{setBg('');changed();syncUI();};
+function setBg(url){S.bgImg=url;if(!url){bgImage=null;draw();return;}bgImage=new Image();bgImage.onload=()=>draw();bgImage.src=url;}
 let fontKey='';
 function ensureFonts(){const tx=textOn();if(!tx||!document.fonts)return Promise.resolve();const k=S.text.font+'|'+tx.title+tx.label;if(k===fontKey)return Promise.resolve();fontKey=k;
   return Promise.all([document.fonts.load(tfont(80,700),tx.title+tx.label||'あ')]).then(()=>draw()).catch(()=>{});}
@@ -837,7 +856,7 @@ document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,sele
 syncUI();updPlayIcon();
 (async()=>{
   await idb();const o=await kvGet();
-  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=k==='text'?Object.assign(S.text,o[k]):o[k];});if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
+  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
   else loadSample();
   setT(timeline().end);
   if(document.fonts)document.fonts.ready.then(draw);
