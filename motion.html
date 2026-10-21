@@ -284,7 +284,27 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
     </details>
 
     <details class="panel" open>
-      <summary><span class="num">7</span>書き出す</summary>
+      <summary><span class="num">7</span>完成画像に着地</summary>
+      <div class="pb">
+        <label class="chk"><input type="checkbox" data-bind="fin.on">最後に完成画像へ着地させる</label>
+        <div class="btns"><label class="btn" for="finFile">完成画像を選ぶ</label><button class="btn" id="finClear">外す</button><span class="desc" id="finInfo" style="align-self:center">画像なし</span></div>
+        <input type="file" id="finFile" accept="image/*" hidden>
+        <p class="desc">題字まで出たあと、作品と文字がふわっと浮き上がり、縮みながら完成画像に着地します。着地の瞬間に画面が揺れ、作品と文字は透けて消えます。</p>
+        <div class="opt"><span>合わせ方</span><div class="seg"><button data-set="fin.fit" data-val="contain">全体を収める</button><button data-set="fin.fit" data-val="cover">画面を覆う</button></div></div>
+        <div class="field"><label for="fScale">大きさ</label><input type="range" id="fScale" min="0.3" max="1.6" step="0.005" data-bind="fin.scale"><output data-out="fin.scale" data-pct></output></div>
+        <div class="field"><label for="fX">左右</label><input type="range" id="fX" min="-0.5" max="0.5" step="0.002" data-bind="fin.x"><output data-out="fin.x" data-pct></output></div>
+        <div class="field"><label for="fY">上下</label><input type="range" id="fY" min="-0.5" max="0.5" step="0.002" data-bind="fin.y"><output data-out="fin.y" data-pct></output></div>
+        <label class="chk"><input type="checkbox" data-bind="fin.overlay">位置合わせのため、プレビューに半透明で重ねる</label>
+        <p class="desc">重ねている間は、浮き上がる直前の場面で止まります。作品と完成画像の形が重なるように、大きさと位置を動かしてください。</p>
+        <div class="field"><label for="fLift">浮き上がり</label><input type="range" id="fLift" min="0" max="0.25" step="0.01" data-bind="fin.lift"><output data-out="fin.lift" data-pct></output></div>
+        <div class="opt"><span>揺れ</span><div class="seg"><button data-set="fin.shake" data-val="none">なし</button><button data-set="fin.shake" data-val="low">弱め</button><button data-set="fin.shake" data-val="mid">ふつう</button><button data-set="fin.shake" data-val="high">強め</button></div></div>
+        <div class="field"><label for="fFade">消える時間</label><input type="range" id="fFade" min="0.15" max="2" step="0.05" data-bind="fin.fade"><output data-out="fin.fade" data-unit="秒"></output></div>
+        <div class="field"><label for="fWait">着地までの間</label><input type="range" id="fWait" min="0.2" max="3" step="0.1" data-bind="fin.wait"><output data-out="fin.wait" data-unit="秒"></output></div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary><span class="num">8</span>書き出す</summary>
       <div class="pb">
         <div class="opt"><span>画面の形</span><div class="seg"><button data-set="aspect" data-val="1:1">1:1</button><button data-set="aspect" data-val="4:5">4:5</button><button data-set="aspect" data-val="16:9">16:9</button><button data-set="aspect" data-val="9:16">9:16</button></div></div>
         <div class="btns"><button class="btn primary" id="makeBtn">動画を作る</button><button class="btn" id="stillBtn">完成画像を作る</button></div>
@@ -312,7 +332,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
   order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,fixedShow:'always',
-  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
+  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
 let SH=[]; // shapes
@@ -433,6 +453,8 @@ function timeline(){
     T.titleDur=S.text.anim==='chars'?.5+.09*Math.max(0,n-1):S.text.anim==='line'?1.1:.8;T.labelStart=T.textStart+T.titleDur-.15;
     T.textEnd=T.labelStart+(tx.label?.7:0);T.end=T.textEnd+S.endHold;}
   else{T.textStart=T.textEnd=Infinity;T.end=T.effEnd+S.endHold;}
+  if(finOn()){T.finStart=(isFinite(T.textEnd)?T.textEnd:T.effEnd)+S.fin.wait;T.impact=T.finStart+FIN_LIFT+FIN_DROP;T.finEnd=T.impact+Math.max(.6,S.fin.fade+.15);T.end=T.finEnd+S.endHold;}
+  else T.finStart=T.impact=T.finEnd=Infinity;
   return T;
 }
 function copyProgress(k,t,T){
@@ -513,13 +535,50 @@ function paintBg(x,W,H){
   if(S.bgImg&&bgImage&&bgImage.complete&&bgImage.naturalWidth){const iw=bgImage.naturalWidth,ih=bgImage.naturalHeight,r=S.bgFit==='cover'?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih);
     x.drawImage(bgImage,(W-iw*r)/2,(H-ih*r)/2,iw*r,ih*r);}
 }
-function frame(x,t,W,H){
-  frameArt(x,t,W,H);const T=timeline();t=clamp(t,0,T.end);const tx=textOn();
+const FIN_LIFT=.6,FIN_DROP=.3;
+let finImage=null;
+const finOn=()=>S.fin.on&&!!S.finImg;
+function withPre(x,G,fn){const orig=x.setTransform.bind(x);x.setTransform=(a,b,c,d,e,f)=>orig(...mul(G,[a,b,c,d,e,f]));try{fn();}finally{x.setTransform=orig;}}
+function drawFinalImg(x,W,H){
+  if(!finImage||!finImage.complete||!finImage.naturalWidth)return;const iw=finImage.naturalWidth,ih=finImage.naturalHeight;
+  const r=(S.fin.fit==='cover'?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih))*S.fin.scale,w=iw*r,h=ih*r;
+  x.setTransform(1,0,0,1,0,0);x.drawImage(finImage,(W-w)/2+S.fin.x*W,(H-h)/2+S.fin.y*H,w,h);
+}
+function finState(t,T,W,H){
+  if(!finOn()||t<T.finStart)return null;const u=t-T.finStart,L=S.fin.lift,imp=FIN_LIFT+FIN_DROP;let s;
+  if(u<FIN_LIFT){const q=u/FIN_LIFT;s=1+L*(1-Math.pow(1-q,3));}
+  else if(u<imp){const q=(u-FIN_LIFT)/FIN_DROP;s=1+L*(1-q*q);}
+  else{const v=u-imp;s=1-L*.18*Math.exp(-v*9)*Math.sin(v*24);}
+  let dx=0,dy=0;const amp={none:0,low:.006,mid:.013,high:.024}[S.fin.shake]*Math.min(W,H);
+  if(u>imp&&amp){const v=u-imp,a=amp*Math.exp(-v*7);dx=a*Math.sin(v*57);dy=a*.75*Math.cos(v*43);}
+  const elemA=u<imp?1:1-EASE.smooth(clamp((u-imp)/Math.max(.05,S.fin.fade)));
+  const imgA=EASE.smooth(clamp((u-imp+.06)/.3));
+  return{s,dx,dy,elemA,imgA,ov:1+2.2*amp/Math.min(W,H)};
+}
+function drawElements(x,t,T,W,H){
+  frameArt(x,t,W,H,true);const tx=textOn();
   if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}
 }
-function frameArt(x,t,W,H){
+let layerC=null;
+function frame(x,t,W,H){
+  const T=timeline();t=clamp(t,0,T.end);const F=finState(t,T,W,H);
+  if(!F){frameArt(x,t,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
+  const C=camera(W,H);if(!C)return;
+  withPre(x,[F.ov,0,0,F.ov,W/2*(1-F.ov)+F.dx,H/2*(1-F.ov)+F.dy],()=>paintBg(x,W,H));
+  if(F.imgA>0)withPre(x,[1,0,0,1,F.dx,F.dy],()=>{x.save();x.globalAlpha=F.imgA;drawFinalImg(x,W,H);x.restore();});
+  if(F.elemA<=0)return;
+  const G=mul([1,0,0,1,F.dx,F.dy],[F.s,0,0,F.s,C.ox*(1-F.s),C.oy*(1-F.s)]);
+  if(F.elemA>=1){withPre(x,G,()=>drawElements(x,t,T,W,H));return;}
+  // 透けていく間は、重なりがにじまないよう別の紙に描いてから重ねる
+  x.setTransform(1,0,0,1,0,0);const m=x.getTransform();const cw=x.canvas.width,ch=x.canvas.height;
+  if(!layerC||layerC.width!==cw||layerC.height!==ch){layerC=document.createElement('canvas');layerC.width=cw;layerC.height=ch;}
+  const o=layerC.getContext('2d');o.resetTransform();o.clearRect(0,0,cw,ch);
+  withPre(o,mul([m.a,m.b,m.c,m.d,m.e,m.f],G),()=>drawElements(o,t,T,W,H));
+  x.save();x.resetTransform();x.globalAlpha=F.elemA;x.drawImage(layerC,0,0);x.restore();
+}
+function frameArt(x,t,W,H,noBg){
   const T=timeline();t=clamp(t,0,T.end);
-  paintBg(x,W,H);
+  if(!noBg)paintBg(x,W,H);
   const C=camera(W,H);if(!C)return;const b=C.b,sc=C.sc;let base=C.base;
   const e=clamp((t-T.effStart)/S.effDur);
   if(S.pop&&e>0&&e<1){const s=1+.04*Math.sin(Math.PI*e);base=mul([s,0,0,s,C.ox*(1-s),C.oy*(1-s)],base);}
@@ -538,7 +597,7 @@ function frameArt(x,t,W,H){
       x.restore();x.globalAlpha=1;}
   }
   if(t<T.effStart){scene(x,base,t,T,mix,fixedA);return;}
-  if(S.effect==='none'){scene(x,base,t,T,0,fixedA);return;}
+  if(S.effect==='none'||t>=T.effEnd){scene(x,base,t,T,0,fixedA);return;}
   if(S.effect==='recolor'){scene(x,base,t,T,1-EASE.smooth(e),fixedA);return;}
   if(S.effect==='shine'||S.effect==='glow'){
     scene(x,base,t,T,1-EASE.smooth(clamp(e/.45)),fixedA);
@@ -614,6 +673,7 @@ function renderPlay(W,H,dpr){
   const pw=Math.round(fw*dpr),ph=Math.round(fh*dpr);if(!off||off.width!==pw||off.height!==ph){off=document.createElement('canvas');off.width=pw;off.height=ph;}
   // 書き出しと同じ座標で描き、縮めて表示
   frameScaled(off.getContext('2d'),playT,aw,ah,pw/aw);
+  if(S.fin.overlay&&S.finImg){const o=off.getContext('2d');o.save();withPre(o,[pw/aw,0,0,pw/aw,0,0],()=>{o.globalAlpha=.5;drawFinalImg(o,aw,ah);});o.restore();}
   ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(off,Math.round(fx*dpr),Math.round(fy*dpr));
   ctx.setTransform(dpr,0,0,dpr,0,0);ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1;ctx.strokeRect(fx-.5,fy-.5,fw+1,fh+1);
 }
@@ -645,8 +705,11 @@ $('#scrub').addEventListener('input',e=>{pause();if(S.view!=='play'){S.view='pla
 function renderPhases(){
   const T=timeline(),E=T.end,seg=(a,b,c)=>`<i style="width:${((b-a)/E*100).toFixed(2)}%;background:${c}"></i>`;
   const te=isFinite(T.textStart);
-  $('#phases').innerHTML=seg(0,T.moveStart,'#C9CDD8')+seg(T.moveStart,T.moveEnd,PAL[1])+seg(T.moveEnd,T.effStart,'#E3E5EC')+seg(T.effStart,T.effEnd,PAL[3])+(te?seg(T.effEnd,T.textStart,'#E3E5EC')+seg(T.textStart,T.textEnd,PAL[4])+seg(T.textEnd,E,'#C9CDD8'):seg(T.effEnd,E,'#C9CDD8'));
-  $('#phases').title='灰：導入・静止　青：移動　黄：完成のエフェクト　緑：題字と型名';
+  const fe=isFinite(T.finStart),tailStart=fe?T.finEnd:E;let h=seg(0,T.moveStart,'#C9CDD8')+seg(T.moveStart,T.moveEnd,PAL[1])+seg(T.moveEnd,T.effStart,'#E3E5EC')+seg(T.effStart,T.effEnd,PAL[3]);
+  let last=T.effEnd;if(te){h+=seg(last,T.textStart,'#E3E5EC')+seg(T.textStart,T.textEnd,PAL[4]);last=T.textEnd;}
+  if(fe){h+=seg(last,T.finStart,'#E3E5EC')+seg(T.finStart,T.finEnd,PAL[5]);last=T.finEnd;}
+  $('#phases').innerHTML=h+seg(last,E,'#C9CDD8');
+  $('#phases').title='灰：導入・静止　青：移動　黄：完成のエフェクト　緑：題字と型名　紫：着地';
 }
 
 /* ---------- input (edit view) ---------- */
@@ -757,7 +820,7 @@ function syncUI(){
   $('#hint').textContent=S.view==='edit'?(SH.length?`図形をタップして「${{part:'パーツ',copy:'複製',fixed:'固定'}[S.brush]}」にします（もう一度タップで固定に戻す）。ドラッグで移動、2本指・Ctrl＋ホイールで拡大。`:'右の①から SVG を読み込んでください。'):'画面をタップで再生・一時停止。';
   $('#stageInfo').textContent=S.name?`「${S.name}」`:'';
   buildCols();$('#colsBox').style.display=S.explain==='split'?'grid':'none';
-  $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
+  $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#finInfo').textContent=S.finImg?'画像あり':'画像なし';$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
   ensureFonts();
   syncInputs();renderPhases();
   if(S.view==='play'){const T=timeline();if(playT>T.end)playT=T.end;$('#tcode').textContent=`${playT.toFixed(1)} / ${T.end.toFixed(1)} 秒`;$('#scrub').value=Math.round(playT/T.end*1000);}
@@ -820,7 +883,7 @@ $('#shareBtn').onclick=async()=>{if(!outBlob)return;const f=new File([outBlob],o
 $('#dlBtn').onclick=()=>{if(!outURL)return;const a=document.createElement('a');a.href=outURL;a.download=outName();document.body.appendChild(a);a.click();a.remove();};
 
 /* ---------- storage ---------- */
-const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','pop','endHold','bg','aspect','brush'];
+const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','fin','pop','endHold','bg','aspect','brush'];
 let DB=null;
 function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('motion-kobo')||'null'));}catch(_){res(null);}return;}
@@ -844,6 +907,15 @@ $('#bgFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)retu
     if(r<1){const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*r);c.height=Math.round(img.naturalHeight*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);url=c.toDataURL('image/jpeg',.9);}
     setBg(url);changed();syncUI();toast('背景の画像を設定しました。');};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
 $('#bgClear').onclick=()=>{setBg('');changed();syncUI();};
+$('#finFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{const m=2400,r=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));let url=String(rd.result);
+    if(r<1){const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*r);c.height=Math.round(img.naturalHeight*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);url=/png|webp|gif/i.test(f.type)?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.92);}
+    setFin(url);S.fin.on=true;S.fin.overlay=true;changed();syncUI();toAlign();
+    toast('完成画像を設定しました。半透明の重ねを見ながら、大きさと位置を合わせてください。',5000);};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
+$('#finClear').onclick=()=>{setFin('');changed();syncUI();};
+function toAlign(){pause();if(S.view!=='play')S.view='play';syncUI();const T=timeline();if(isFinite(T.finStart))setT(T.finStart-.02);}
+document.querySelector('[data-bind="fin.overlay"]').addEventListener('change',e=>{if(e.target.checked&&S.finImg)toAlign();});
+function setFin(url){S.finImg=url;if(!url){finImage=null;draw();return;}finImage=new Image();finImage.onload=()=>draw();finImage.src=url;}
 function setBg(url){S.bgImg=url;if(!url){bgImage=null;draw();return;}bgImage=new Image();bgImage.onload=()=>draw();bgImage.src=url;}
 let fontKey='';
 function ensureFonts(){const tx=textOn();if(!tx||!document.fonts)return Promise.resolve();const k=S.text.font+'|'+tx.title+tx.label;if(k===fontKey)return Promise.resolve();fontKey=k;
@@ -856,7 +928,7 @@ document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,sele
 syncUI();updPlayIcon();
 (async()=>{
   await idb();const o=await kvGet();
-  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
+  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(S.finImg)setFin(S.finImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
   else loadSample();
   setT(timeline().end);
   if(document.fonts)document.fonts.ready.then(draw);
