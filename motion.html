@@ -97,6 +97,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
 .seg.wrap{flex-wrap:wrap}.seg.wrap button{flex:1 0 33%;border-bottom:1px solid var(--line)}.seg.wrap button:nth-child(3n){border-right:0}.seg.wrap button:nth-last-child(-n+3){border-bottom:0}
 .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}.cols label{display:flex;align-items:center;gap:6px;font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:var(--surface-2)}.cols input[type=color]{width:30px;height:24px;flex:none}
+.wlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.wcard{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface-2);display:flex;flex-direction:column;min-width:0}
+.wcard.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.wth{aspect-ratio:1/1;background:#fff;display:grid;place-items:center;max-width:100%}
+.wth img{max-width:100%;max-height:100%;object-fit:contain}
+.winfo{display:flex;flex-direction:column;padding:6px 8px 0;min-width:0}.winfo b{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.winfo span{font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.wact{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px 8px}.wact .btn{font-size:11.5px;padding:3px 7px;min-height:28px}.wact .btn.armed{background:var(--warn);border-color:var(--warn);color:#fff}
+.sep{border:0;border-top:1px solid var(--line);margin:2px 0;width:100%}
+textarea{width:100%;height:80px;font-family:var(--f-mono);font-size:11px;resize:vertical}
 .roleseg button{display:flex;align-items:center;justify-content:center;gap:6px}
 .roleseg i{width:12px;height:12px;border-radius:3px;display:block;flex:none}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -280,7 +289,7 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
         <div class="opt"><span>題字</span><input type="text" data-bind="text.title" placeholder="例：部内" maxlength="24"></div>
         <div class="opt"><span>型名</span><input type="text" data-bind="text.label" placeholder="例：重畳型（回転）" maxlength="40"></div>
         <div class="opt"><span>書体</span><div class="seg"><button data-set="text.font" data-val="serif">明朝</button><button data-set="text.font" data-val="sans">ゴシック</button><button data-set="text.font" data-val="dela">デラゴシック</button></div></div>
-        <div class="opt"><span>出し方</span><div class="seg"><button data-set="text.anim" data-val="fade">ふわっと</button><button data-set="text.anim" data-val="chars">1文字ずつ</button><button data-set="text.anim" data-val="line">線から</button></div></div>
+        <div class="opt" style="align-items:start"><span style="padding-top:6px">出し方</span><div class="seg wrap"><button data-set="text.anim" data-val="fade">ふわっと</button><button data-set="text.anim" data-val="chars">1文字ずつ</button><button data-set="text.anim" data-val="line">線から</button><button data-set="text.anim" data-val="type">タイプ</button><button data-set="text.anim" data-val="rise">せり上がる</button><button data-set="text.anim" data-val="drop">落ちて弾む</button><button data-set="text.anim" data-val="spread">寄ってくる</button><button data-set="text.anim" data-val="stamp">押印</button><button data-set="text.anim" data-val="wipe">ワイプ</button></div></div>
         <div class="field"><label for="tSize">題字の大きさ</label><input type="range" id="tSize" min="0.4" max="2.5" step="0.05" data-bind="text.titleSize"><output data-out="text.titleSize" data-unit="×"></output></div>
         <div class="field"><label for="lSize">型名の大きさ</label><input type="range" id="lSize" min="0.4" max="2.5" step="0.05" data-bind="text.labelSize"><output data-out="text.labelSize" data-unit="×"></output></div>
         <div class="field"><label for="tGap">作品との間</label><input type="range" id="tGap" min="0" max="3" step="0.05" data-bind="text.gap"><output data-out="text.gap" data-unit="×"></output></div>
@@ -324,6 +333,21 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
           <div class="btns" id="saveBtns"><button class="btn primary" id="shareBtn">写真に保存・共有</button><button class="btn" id="dlBtn">ファイルとして保存</button></div>
           <p class="desc" id="framedNote" hidden>claude.ai 上では保存できません。iPad のアプリ版で同じ操作をすると保存できます。画像は長押しでも保存できます。</p>
         </div>
+      </div>
+    </details>
+    <details class="panel" open>
+      <summary><span class="num">9</span>作品の保存と読み込み</summary>
+      <div class="pb">
+        <div class="opt"><span>作品名</span><input type="text" id="wName" maxlength="40" placeholder="例：部内"></div>
+        <div class="btns"><button class="btn primary" id="wSave">この作品を新しく保存</button></div>
+        <div class="wlist" id="wList"></div>
+        <hr class="sep">
+        <span class="desc">別の場所へ移す（claude.ai 上の版 ⇔ iPad のアプリ など）</span>
+        <div class="btns"><button class="btn" id="wCopy">作品データをコピー</button><button class="btn" id="wFileOut">ファイルとして書き出す</button><label class="btn" for="wFileIn">ファイルから読み込む</label></div>
+        <input type="file" id="wFileIn" accept=".json,application/json" hidden>
+        <textarea id="wText" spellcheck="false" placeholder="ここに作品データを貼り付けて「貼り付けて読み込む」を押します" aria-label="作品データ"></textarea>
+        <div class="btns"><button class="btn" id="wLoad">貼り付けて読み込む</button></div>
+        <p class="desc">作品データには SVG・設定・背景画像・完成画像がすべて入ります。読み込んだ作品は、保存した作品の一覧にも加わります。</p>
       </div>
     </details>
   </aside>
@@ -462,7 +486,7 @@ function timeline(){
   T.effStart=T.moveEnd+.45;T.effEnd=T.effStart+S.effDur;
   const tx=textOn();
   if(tx){const n=Array.from(tx.title).length;T.textStart=T.effEnd+.3;
-    T.titleDur=S.text.anim==='chars'?.5+.09*Math.max(0,n-1):S.text.anim==='line'?1.1:.8;T.labelStart=T.textStart+T.titleDur-.15;
+    const an=S.text.anim,m=Math.max(0,n-1);T.titleDur={chars:.5+.09*m,line:1.1,type:.12*n+.25,rise:.6+.08*m,drop:.75+.09*m,spread:1.1,stamp:.7,wipe:1.0,fade:.8}[an]||.8;T.labelStart=T.textStart+T.titleDur-.15;
     T.textEnd=T.labelStart+(tx.label?.7:0);T.end=T.textEnd+S.endHold;}
   else{T.textStart=T.textEnd=Infinity;T.end=T.effEnd+S.endHold;}
   if(finOn()){T.finStart=(isFinite(T.textEnd)?T.textEnd:T.effEnd)+S.fin.wait;T.impact=T.finStart+FIN_LIFT+FIN_DROP;T.finEnd=T.impact+Math.max(.6,S.fin.fade+.15);T.end=T.finEnd+S.endHold;}
@@ -573,10 +597,14 @@ function textOn(){if(!S.text.on)return null;const title=(S.text.title||'').trim(
 const TFONT={serif:'"Noto Serif JP", "Hiragino Mincho ProN", serif',sans:'"Noto Sans JP", "Hiragino Sans", sans-serif',dela:'"Dela Gothic One", "Hiragino Sans", sans-serif'};
 const tfont=(px,w)=>`${S.text.font==='dela'?400:(w||700)} ${px}px ${TFONT[S.text.font]}`;
 const ROT_CH=/[ー－—―〜～\-~(（)）「」『』【】…:：]/;
+function bounce(q){if(q<=0)return 0;if(q>=1)return 1;const n=7.5625,d=2.75;if(q<1/d)return n*q*q;if(q<2/d)return n*(q-=1.5/d)*q+.75;if(q<2.5/d)return n*(q-=2.25/d)*q+.9375;return n*(q-=2.625/d)*q+.984375;}
 function drawChars(x,str,px,cx,cy,sp,vert,fx){
   const cs=Array.from(str);if(!cs.length)return;x.textBaseline='middle';
   if(!vert){const ws=cs.map(c=>x.measureText(c).width),tot=ws.reduce((a,b)=>a+b,0)+sp*(cs.length-1);let p=cx-tot/2;x.textAlign='left';
-    cs.forEach((c,i)=>{const f=fx(i,cs.length);if(f.a>0){x.globalAlpha=f.a;x.fillText(c,p,cy+f.dy);}p+=ws[i]+sp;});return tot;}
+    const xs=[];cs.forEach((c,i)=>{xs.push(p);const f=fx(i,cs.length);if(f.a>0){x.globalAlpha=f.a;
+      if(f.s!=null&&f.s!==1||f.rot){x.save();x.translate(p+ws[i]/2,cy+f.dy);x.rotate(f.rot||0);x.scale(f.s??1,f.s??1);x.fillText(c,-ws[i]/2,0);x.restore();}
+      else x.fillText(c,p,cy+f.dy);}p+=ws[i]+sp;});
+    drawChars.last={xs,ws,tot,left:cx-tot/2};return tot;}
   // 縦書き：半角の並びは2文字までは縦中横、それより長ければ横に倒す
   const tok=[];for(const m of str.matchAll(/[\x20-\x7E°×]+|./gu)){const v=m[0];if(/^[\x20-\x7E°×]+$/.test(v)){const w=v.trim();if(!w){tok.push({s:'',sp:1});continue;}tok.push(w.length<=2?{s:w,tcy:1}:{s:w,rot:1});}else tok.push(v==='　'?{s:'',sp:1}:{s:v,rot:ROT_CH.test(v)});}
   const len=k=>k.sp?px*.5:k.rot&&k.s.length>1?x.measureText(k.s).width:px;
@@ -602,11 +630,27 @@ function drawText(x,W,H,t,T,tx,L){
       if(vert){const lx=tX+tp*.72;x.moveTo(lx,tY-tw/2*lp1);x.lineTo(lx,tY+tw/2*lp1);}else{const ly=tY+tp*.62;x.moveTo(tX-tw/2*lp1,ly);x.lineTo(tX+tw/2*lp1,ly);}x.stroke();
       const q=EASE.smooth(clamp((t-t0-.35)/.6));drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,()=>({a:q,dy:(1-q)*tp*.18*(vert?1:1)}));}
     else if(an==='chars'){drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,i=>{const q=clamp((t-t0-i*.09)/.5),e=EASE.back(q);return{a:clamp(q*1.6),dy:(1-e)*tp*.35};});}
+    else if(an==='type'){const k=Math.floor((t-t0)/.12)+1;drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,i=>({a:i<k?1:0,dy:0}));
+      const L=drawChars.last,n=Array.from(tx.title).length,vis=Math.min(n,Math.max(0,k)),cxp=vis?L.xs[vis-1]+L.ws[vis-1]+tp*.08:L.left;
+      const on=(t<T.textEnd+.6)&&(vis<n||Math.floor((t-t0)*2.2)%2===0);if(on){x.globalAlpha=1;x.fillRect(cxp,tY-tp*.5,Math.max(2,tp*.06),tp);}}
+    else if(an==='rise'){x.save();x.beginPath();x.rect(0,tY-tp*1.2,W,tp*1.78);x.clip();
+      drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,i=>{const q=EASE.smooth(clamp((t-t0-i*.08)/.6));return{a:q>0?1:0,dy:(1-q)*tp*1.15};});x.restore();}
+    else if(an==='drop'){drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,i=>{const q=clamp((t-t0-i*.09)/.75);return{a:clamp(q*3),dy:-(1-bounce(q))*tp*1.6};});}
+    else if(an==='spread'){const q=EASE.smooth(clamp((t-t0)/1.1));drawChars(x,tx.title,tp,tX,tY,tp*(.15+1.4*(1-q)),vert,()=>({a:q,dy:0}));}
+    else if(an==='stamp'){const q=clamp((t-t0)/.45),e=EASE.smooth(q),s=1+.7*(1-e),j=q>=1?Math.exp(-(t-t0-.45)*12)*Math.sin((t-t0-.45)*60)*tp*.03:0;
+      x.save();x.translate(j,0);drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,()=>({a:clamp(q*1.8),dy:0,s,rot:-.06*(1-e)}));x.restore();}
+    else if(an==='wipe'){const q=EASE.smooth(clamp((t-t0)/1.0));const tw=x.measureText(tx.title).width+tp*.15*(Array.from(tx.title).length-1),L=tX-tw/2-tp*.2;
+      x.save();x.beginPath();x.rect(0,0,L+(tw+tp*.4)*q,H);x.clip();drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,()=>({a:1,dy:0}));x.restore();
+      if(q>0&&q<1){x.globalAlpha=.6;x.fillRect(L+(tw+tp*.4)*q-1,tY-tp*.55,Math.max(2,tp*.03),tp*1.1);}}
     else{const q=EASE.smooth(clamp((t-t0)/.8));drawChars(x,tx.title,tp,tX,tY,tp*.15,vert,()=>({a:q,dy:(1-q)*tp*.3}));}
   }
   // 型名
-  if(tx.label){x.font=tfont(lp,700);const q=EASE.smooth(clamp((t-T.labelStart)/.7));
-    x.save();x.globalAlpha=1;drawChars(x,tx.label,lp,lX,lY,lp*.12,vert,()=>({a:q*.72,dy:(1-q)*lp*.4}));x.restore();}
+  if(tx.label){x.font=tfont(lp,700);const q=EASE.smooth(clamp((t-T.labelStart)/.7));x.save();x.globalAlpha=1;
+    if(an==='type'){const k=Math.floor((t-T.labelStart)/.06)+1;drawChars(x,tx.label,lp,lX,lY,lp*.12,vert,i=>({a:i<k?.72:0,dy:0}));}
+    else if(an==='wipe'||an==='rise'){const tw=x.measureText(tx.label).width+lp*.12*(Array.from(tx.label).length-1),L=lX-tw/2-lp*.2;x.beginPath();x.rect(0,0,L+(tw+lp*.4)*q,H);x.clip();drawChars(x,tx.label,lp,lX,lY,lp*.12,vert,()=>({a:.72,dy:0}));}
+    else if(an==='spread'){drawChars(x,tx.label,lp,lX,lY,lp*(.12+1.2*(1-q)),vert,()=>({a:q*.72,dy:0}));}
+    else drawChars(x,tx.label,lp,lX,lY,lp*.12,vert,()=>({a:q*.72,dy:(1-q)*lp*.4}));
+    x.restore();}
   x.globalAlpha=1;
 }
 let partC=null;
@@ -974,10 +1018,55 @@ $('#dlBtn').onclick=()=>{if(!outURL)return;const a=document.createElement('a');a
 /* ---------- storage ---------- */
 const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','motion','onion','outline','axisFx','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','fin','pop','endHold','bg','aspect','brush'];
 let DB=null;
-function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
+function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',2);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('works'))d.createObjectStore('works',{keyPath:'id'});};r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('motion-kobo')||'null'));}catch(_){res(null);}return;}
   try{const r=DB.transaction('kv').objectStore('kv').get('current');r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(_){res(null);}});}
 function kvPut(o){if(!DB){try{localStorage.setItem('motion-kobo',JSON.stringify(o));}catch(_){}return;}try{DB.transaction('kv','readwrite').objectStore('kv').put(o,'current');}catch(_){}}
+const MEMW=new Map();
+function wAll(){return new Promise(res=>{if(!DB){res([...MEMW.values()]);return;}try{const r=DB.transaction('works').objectStore('works').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([]);}catch(_){res([]);}});}
+function wPut(w){return new Promise(res=>{if(!DB){MEMW.set(w.id,w);res();return;}try{const t=DB.transaction('works','readwrite');t.objectStore('works').put(w);t.oncomplete=()=>res();t.onerror=()=>{toast('保存できませんでした。端末の空き容量を確かめてください。',4200);res();};}catch(_){res();}});}
+function wDel(id){return new Promise(res=>{if(!DB){MEMW.delete(id);res();return;}try{const t=DB.transaction('works','readwrite');t.objectStore('works').delete(id);t.oncomplete=()=>res();t.onerror=()=>res();}catch(_){res();}});}
+function stateObj(){const o={};KEYS.forEach(k=>o[k]=S[k]);return JSON.parse(JSON.stringify(o));}
+function applyState(o){
+  if(!o||!o.svg)return false;
+  KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin'||k==='axisFx')?Object.assign(S[k],o[k]):o[k];});
+  if(!('bgImg' in o))S.bgImg='';if(!('finImg' in o))S.finImg='';setBg(S.bgImg);setFin(S.finImg);
+  if(!loadSVG(o.svg,o.name,o.roles))return false;syncUI();return true;
+}
+function thumb(){const[aw,ah]=ASP[S.aspect],w=240,h=Math.round(240*ah/aw),c=document.createElement('canvas');c.width=w;c.height=h;
+  try{frameScaled(c.getContext('2d'),timeline().end,aw,ah,w/aw);return c.toDataURL('image/jpeg',.8);}catch(_){return'';}}
+const fmtD=t=>{const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
+const escH=v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let curWork=null;const delArm={};
+async function renderWorks(){
+  const list=(await wAll()).sort((a,b)=>b.updated-a.updated);
+  $('#wList').innerHTML=list.length?list.map(w=>`<div class="wcard${w.id===curWork?' cur':''}" data-wid="${w.id}"><div class="wth">${w.thumb?`<img src="${w.thumb}" alt="">`:''}</div>
+    <div class="winfo"><b>${escH(w.name||'名前なし')}</b><span>${fmtD(w.updated)}</span></div>
+    <div class="wact"><button class="btn" data-wa="open">開く</button><button class="btn" data-wa="over">上書き</button><button class="btn" data-wa="del">削除</button></div></div>`).join(''):'<p class="desc">まだ保存した作品はありません。</p>';
+}
+$('#wSave').onclick=async()=>{if(!SH.length){toast('先に SVG を読み込んでください。');return;}
+  const name=($('#wName').value||S.name||'作品').trim(),w={id:'w'+Date.now().toString(36),name,updated:Date.now(),thumb:thumb(),data:{...stateObj(),name}};
+  S.name=name;await wPut(w);curWork=w.id;renderWorks();syncUI();toast(`「${name}」を保存しました。`);};
+$('#wList').addEventListener('click',async e=>{const b=e.target.closest('[data-wa]');if(!b)return;const id=b.closest('[data-wid]').dataset.wid,list=await wAll(),w=list.find(v=>v.id===id);if(!w)return;
+  if(b.dataset.wa==='open'){pause();if(applyState(w.data)){curWork=id;$('#wName').value=w.name;changed();setT(timeline().end);renderWorks();toast(`「${w.name}」を開きました。`);}else toast('この作品を開けませんでした。');}
+  else if(b.dataset.wa==='over'){w.data={...stateObj(),name:w.name};w.thumb=thumb();w.updated=Date.now();await wPut(w);curWork=id;renderWorks();toast(`「${w.name}」に上書きしました。`);}
+  else{if(!delArm[id]){b.textContent='もう一度で削除';b.classList.add('armed');delArm[id]=setTimeout(()=>{delete delArm[id];b.textContent='削除';b.classList.remove('armed');},2500);return;}
+    clearTimeout(delArm[id]);delete delArm[id];await wDel(id);if(curWork===id)curWork=null;renderWorks();toast(`「${w.name}」を削除しました。`);}
+});
+function exportText(){return JSON.stringify({app:'motion',v:1,name:($('#wName').value||S.name||'作品').trim(),data:stateObj()});}
+$('#wCopy').onclick=async()=>{if(!SH.length)return;const t=$('#wText'),txt=exportText();t.value=txt;
+  try{await navigator.clipboard.writeText(txt);toast('作品データをコピーしました。移したい先の「貼り付けて読み込む」に貼り付けてください。',5000);}
+  catch(_){t.focus();t.select();toast('自動でコピーできませんでした。下の欄の文字を全部選んでコピーしてください。',5000);}};
+async function importText(txt){let o;try{o=JSON.parse(txt);}catch(_){o=null;}
+  if(!o||o.app!=='motion'||!o.data||!o.data.svg){toast('読み込めませんでした。コピーした作品データを丸ごと貼り付けてください。',4600);return;}
+  pause();if(!applyState(o.data)){toast('この作品データは開けませんでした。');return;}
+  const w={id:'w'+Date.now().toString(36),name:o.name||'読み込んだ作品',updated:Date.now(),thumb:thumb(),data:{...stateObj(),name:o.name||S.name}};
+  await wPut(w);curWork=w.id;$('#wName').value=w.name;changed();setT(timeline().end);renderWorks();toast(`「${w.name}」を読み込んで保存しました。`);}
+$('#wLoad').onclick=()=>importText($('#wText').value);
+$('#wFileOut').onclick=async()=>{if(!SH.length)return;const name=($('#wName').value||S.name||'作品').trim(),f=new File([exportText()],`${name.replace(/[\\/:*?"<>|]/g,'_')}.motion.json`,{type:'application/json'});
+  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();};
+$('#wFileIn').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const rd=new FileReader();rd.onload=()=>importText(String(rd.result));rd.readAsText(f);};
 let st=0;function changed(){clearTimeout(st);st=setTimeout(()=>{const o={};KEYS.forEach(k=>o[k]=S[k]);kvPut(JSON.parse(JSON.stringify(o)));},400);renderPhases();draw();}
 
 function buildCols(){
@@ -1017,8 +1106,8 @@ document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,sele
 syncUI();updPlayIcon();
 (async()=>{
   await idb();const o=await kvGet();
-  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin'||k==='axisFx')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(S.finImg)setFin(S.finImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
-  else loadSample();
+  if(!(o&&applyState(o)))loadSample();
+  $('#wName').value=S.name||'';renderWorks();
   setT(timeline().end);
   if(document.fonts)document.fonts.ready.then(draw);
 })();
