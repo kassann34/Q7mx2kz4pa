@@ -241,7 +241,13 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
         <div class="opt"><span>緩急</span><div class="seg"><button data-set="ease" data-val="smooth">なめらか</button><button data-set="ease" data-val="back">弾む</button><button data-set="ease" data-val="linear">一定</button></div></div>
         <div class="field"><label for="moveDur">1回の移動</label><input type="range" id="moveDur" min="0.4" max="3" step="0.1" data-bind="moveDur"><output data-out="moveDur" data-unit="秒"></output></div>
         <label class="chk"><input type="checkbox" data-bind="introFull">最初に完成形を見せてから分解する</label>
+        <div class="opt" style="align-items:start"><span style="padding-top:6px">遷移</span><div class="seg wrap"><button data-set="motion" data-val="path">変換どおり</button><button data-set="motion" data-val="lift">持ち上げる</button><button data-set="motion" data-val="arc">弧を描く</button><button data-set="motion" data-val="spin">くるっと</button><button data-set="motion" data-val="stamp">スタンプ</button><button data-set="motion" data-val="fade">ふわっと</button></div></div>
+        <p class="desc" id="motionDesc"></p>
         <label class="chk"><input type="checkbox" data-bind="trail">移動の軌跡を描く</label>
+        <label class="chk"><input type="checkbox" data-bind="onion">残像を残す</label>
+        <label class="chk"><input type="checkbox" data-bind="outline">パーツの輪郭を描き起こしてから始める</label>
+        <label class="chk"><input type="checkbox" data-bind="axisFx.on">動く前に軸を見せる</label>
+        <div class="opt"><span>軸の色</span><div class="row"><input type="color" data-bind="axisFx.color" aria-label="軸の色"><label class="chk"><input type="checkbox" data-bind="axisFx.label">角度などを表示</label></div></div>
         <div class="opt"><span>固定の図形</span><div class="seg"><button data-set="fixedShow" data-val="always">ずっと表示</button><button data-set="fixedShow" data-val="end">最後に出す</button></div></div>
       </div>
     </details>
@@ -333,7 +339,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <polygon points="320,240 140,240 140,140 240,140 240,170 170,170 170,210 290,210 290,160 320,160" fill="#222"/>
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
-  order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,fixedShow:'always',
+  order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,motion:'path',onion:false,outline:false,axisFx:{on:true,color:'#00A58E',label:true},fixedShow:'always',
   explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
@@ -403,7 +409,8 @@ function parseSVG(text){
       let bb;try{bb=el.getBBox();}catch(_){bb={x:0,y:0,width:0,height:0};}
       const h=sw/2;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
       for(const[cx,cy]of[[bb.x-h,bb.y-h],[bb.x+bb.width+h,bb.y-h],[bb.x-h,bb.y+bb.height+h],[bb.x+bb.width+h,bb.y+bb.height+h]]){const[x,y]=ap(M,cx,cy);x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
-      out.push({d,m:M,fill,stroke,sw,fr:cs.fillRule==='evenodd'?'evenodd':'nonzero',cap:cs.strokeLinecap||'butt',join:cs.strokeLinejoin||'miter',
+      let len=0;try{len=el.getTotalLength();}catch(_){len=0;}if(!(len>0))len=2*((bb.width||0)+(bb.height||0))||100;
+      out.push({d,len,m:M,fill,stroke,sw,fr:cs.fillRule==='evenodd'?'evenodd':'nonzero',cap:cs.strokeLinecap||'butt',join:cs.strokeLinejoin||'miter',
         fa:op*(isNaN(fo)?1:fo),sa:op*(isNaN(so)?1:so),bb:{x0,y0,x1,y1}});
     }
   }finally{host.remove();}
@@ -446,7 +453,10 @@ const grow=(b,f)=>{const w=b.x1-b.x0,h=b.y1-b.y0,m=Math.max(w,h)*f;return{x0:b.x
 /* ---------- timeline & frame ---------- */
 function timeline(){
   const n=S.count,T={};let t=0;
-  if(S.introFull){T.fullEnd=1.2;T.splitEnd=2.1;t=2.4;}else{T.fullEnd=0;T.splitEnd=0;t=0.6;}
+  if(S.introFull){T.fullEnd=1.2;T.splitEnd=2.1;t=2.3;}else{T.fullEnd=0;T.splitEnd=0;t=0.4;}
+  if(S.outline){T.outStart=t;T.outEnd=t+1.5;t=T.outEnd+.15;}else{T.outStart=T.outEnd=-1;}
+  if(S.axisFx.on){T.axisStart=t;T.axisEnd=t+1.2;t=T.axisEnd+.1;}else{T.axisStart=T.axisEnd=Infinity;}
+  if(!S.outline&&!S.axisFx.on)t+=.2;
   T.moveStart=t;const gap=.25;
   T.moveEnd=S.order==='seq'?t+(n-1)*S.moveDur+Math.max(0,n-2)*gap:t+S.moveDur;T.gap=gap;
   T.effStart=T.moveEnd+.45;T.effEnd=T.effStart+S.effDur;
@@ -470,18 +480,93 @@ function colorsFor(sh,role,k,mix){ // mix: 0=完成の色, 1=説明中の色
   const fnF=S.finalMode==='mono'?S.finalColor:sh.fill,fnS=S.finalMode==='mono'?S.finalColor:sh.stroke;
   return[lerpC(fnF,exF,mix),lerpC(fnS,exS,mix)];
 }
+let FW=1080;
+function partSize(){const b=boxUnion(byRole('part'),[I]);return b?Math.hypot(b.x1-b.x0,b.y1-b.y0):100;}
+const about=(m,cx,cy)=>[m[0],m[1],m[2],m[3],cx-m[0]*cx-m[2]*cy+m[4],cy-m[1]*cx-m[3]*cy+m[5]];
+function instM(k,p){ // 遷移の種類に応じた、動く途中のコピーの位置
+  const st=S.motion,c0=partC||{x:0,y:0};
+  if(st==='stamp'){const q=EASE.smooth(p),M=Mint(k),c=ap(M,c0.x,c0.y),s=1+.4*(1-q);return{M:mul(about([s,0,0,s,0,0],c[0],c[1]),M),a:clamp(p*2.2),ds:0};}
+  if(st==='fade'){const q=EASE.smooth(p),M=Mint(k),c=ap(M,c0.x,c0.y),s=.92+.08*q;return{M:mul(about([s,0,0,s,0,0],c[0],c[1]),M),a:q,ds:0};}
+  const M=Mf(copyA(k,p)),c=ap(M,c0.x,c0.y),z=Math.sin(Math.PI*clamp(p));
+  if(st==='lift'){const s=1+.13*z;return{M:mul(about([s,0,0,s,0,0],c[0],c[1]),M),a:1,ds:z,base:M};}
+  if(st==='arc'){const h=.5*partSize()*z;return{M:mul([1,0,0,1,0,-h],M),a:1,ds:0};}
+  if(st==='spin'){const r=rad(360*EASE.smooth(p)),co=Math.cos(r),si=Math.sin(r);return{M:mul(about([co,si,-si,co,0,0],c[0],c[1]),M),a:1,ds:0};}
+  return{M,a:1,ds:0};
+}
+function partState(t,T){
+  if(S.outline){
+    if(S.introFull&&t<T.splitEnd)return{mode:'normal',a:1-clamp((t-T.fullEnd)/(T.splitEnd-T.fullEnd))};
+    if(t<T.outStart)return{mode:'hidden'};
+    if(t<T.outEnd){const u=t-T.outStart;return{mode:'outline',q:EASE.smooth(clamp(u/1.05)),fill:EASE.smooth(clamp((u-.95)/.5))};}
+  }
+  return{mode:'normal',a:1};
+}
 function scene(x,base,t,T,mix,fixedA){
   const parts=byRole('part'),fixed=byRole('fixed'),n=S.count;
   for(const sh of fixed){const[f,s]=colorsFor(sh,'fixed',0,mix);drawShape(x,base,I,sh,f,s,fixedA);}
+  const drawAt=(k,M,a)=>{for(const sh of parts){const[f,s]=colorsFor(sh,'part',k,mix);drawShape(x,base,M,sh,f,s,a);}};
   // 複製
   for(let k=1;k<n;k++){
-    let M=null,a=1;
-    if(t<T.moveStart){if(S.introFull&&t<T.splitEnd){M=Mint(k);a=1-clamp((t-T.fullEnd)/(T.splitEnd-T.fullEnd));}}
-    else{const p=copyProgress(k,t,T);if(p>0)M=Mf(copyA(k,p));}
-    if(!M)continue;
-    for(const sh of parts){const[f,s]=colorsFor(sh,'part',k,mix);drawShape(x,base,M,sh,f,s,a);}
+    if(t<T.moveStart){if(S.introFull&&t<T.splitEnd)drawAt(k,Mint(k),1-clamp((t-T.fullEnd)/(T.splitEnd-T.fullEnd)));continue;}
+    const p=copyProgress(k,t,T);if(p<=0)continue;
+    if(S.onion&&p<1&&S.motion!=='stamp'&&S.motion!=='fade')for(let i=4;i>=1;i--){const pi=p-i*.075;if(pi<=0)continue;const g=instM(k,pi);drawAt(k,g.M,.2*(1-i/5)*g.a);}
+    const g=instM(k,p);
+    if(g.ds>0){const o=.04*partSize()*g.ds;for(const sh of parts)drawShape(x,base,mul([1,0,0,1,o*.35,o],g.base),sh,'#000','#000',.16*g.ds);}
+    drawAt(k,g.M,g.a);
   }
-  for(const sh of parts){const[f,s]=colorsFor(sh,'part',0,mix);drawShape(x,base,I,sh,f,s,1);}
+  // 元のパーツ
+  const ps=partState(t,T);
+  if(ps.mode==='hidden')return;
+  if(ps.mode==='normal'){drawAt(0,I,ps.a);return;}
+  if(ps.fill>0)drawAt(0,I,ps.fill);
+  const bs=Math.hypot(base[0],base[1]);
+  for(const sh of parts){const[f,st]=colorsFor(sh,'part',0,mix);const ms=Math.hypot(sh.m[0],sh.m[1])||1;
+    x.setTransform(...mul(base,sh.m));x.globalAlpha=1-ps.fill*.999;x.strokeStyle=sh.fill?f:st;
+    x.lineWidth=sh.fill?3.2*FW/1080/(bs*ms):Math.max(sh.sw,3.2*FW/1080/(bs*ms));x.lineCap='round';x.lineJoin='round';
+    x.setLineDash([sh.len,sh.len]);x.lineDashOffset=sh.len*(1-ps.q);x.stroke(sh.p);x.setLineDash([]);x.lineDashOffset=0;}
+  x.globalAlpha=1;
+}
+function arrowHead(x,tx,ty,ang,h){x.beginPath();x.moveTo(tx,ty);x.lineTo(tx-h*Math.cos(ang-.42),ty-h*Math.sin(ang-.42));x.lineTo(tx-h*Math.cos(ang+.42),ty-h*Math.sin(ang+.42));x.closePath();x.fill();}
+function drawAxisFx(x,t,T,W,H){
+  if(!S.axisFx.on||!isFinite(T.axisStart)||t<T.axisStart||t>T.effStart+.5||!partC)return;
+  const C=camera(W,H);if(!C)return;const base=C.base,u=Math.min(W,H)/1080;
+  const q=(t-T.axisStart)/(T.axisEnd-T.axisStart),seg=(a,b)=>clamp((q-a)/(b-a));
+  const A=(1-clamp((t-T.effStart)/.45))*(t>T.axisEnd?.5+.5*(1-clamp((t-T.moveStart)/.6)):1);if(A<=0)return;
+  const col=S.axisFx.color;x.save();x.setTransform(1,0,0,1,0,0);x.globalAlpha=A;x.strokeStyle=col;x.fillStyle=col;x.lineWidth=3.2*u;x.lineCap='round';x.lineJoin='round';
+  const pc=ap(base,partC.x,partC.y),label=(str,px,py,a)=>{if(!S.axisFx.label||a<=0)return;x.save();x.globalAlpha=A*a;x.font=`600 ${Math.round(30*u)}px "IBM Plex Mono", monospace`;x.textAlign='center';x.textBaseline='middle';
+    x.lineWidth=7*u;x.strokeStyle=S.bg;x.strokeText(str,px,py);x.fillText(str,px,py);x.restore();};
+  if(S.mode==='rot'){
+    const c=ap(base,S.rot.cx,S.rot.cy),p1=EASE.back(seg(0,.3));
+    if(p1>0){x.beginPath();x.arc(c[0],c[1],Math.max(0,9*u*p1),0,Math.PI*2);x.fill();}
+    const L=28*u*EASE.smooth(seg(.12,.4));if(L>0){x.beginPath();x.moveTo(c[0]-L,c[1]);x.lineTo(c[0]+L,c[1]);x.moveTo(c[0],c[1]-L);x.lineTo(c[0],c[1]+L);x.stroke();}
+    const p3=EASE.smooth(seg(.35,.88));
+    if(p3>0){let R=Math.hypot(pc[0]-c[0],pc[1]-c[1]);R=Math.max(60*u,Math.min(R*.8,Math.min(W,H)*.3));const a0=Math.atan2(pc[1]-c[1],pc[0]-c[0])||-Math.PI/2,sw=rad(angStep())*p3;
+      x.beginPath();x.arc(c[0],c[1],R,a0,a0+sw,sw<0);x.stroke();
+      const ae=a0+sw;arrowHead(x,c[0]+R*Math.cos(ae),c[1]+R*Math.sin(ae),ae+(sw>=0?Math.PI/2:-Math.PI/2),18*u);
+      const am=a0+sw/2;label(`${Math.round(Math.abs(angStep())*10)/10}°${S.count>2?' ×'+S.count:''}`,c[0]+(R+40*u)*Math.cos(am),c[1]+(R+40*u)*Math.sin(am),seg(.6,.9));}
+  }else if(S.mode==='trans'){
+    const p1=ap(base,...ap(Mint(1),partC.x,partC.y)),pr=EASE.smooth(seg(.1,.8));
+    if(pr>0){const ex=pc[0]+(p1[0]-pc[0])*pr,ey=pc[1]+(p1[1]-pc[1])*pr,ang=Math.atan2(p1[1]-pc[1],p1[0]-pc[0]);
+      x.beginPath();x.arc(pc[0],pc[1],6*u,0,Math.PI*2);x.fill();x.beginPath();x.moveTo(pc[0],pc[1]);x.lineTo(ex,ey);x.stroke();arrowHead(x,ex,ey,ang,18*u);
+      for(let k=2;k<S.count;k++){const pk=ap(base,...ap(Mint(k),partC.x,partC.y));x.save();x.globalAlpha=A*.7*seg(.7,1);x.beginPath();x.arc(pk[0],pk[1],6*u,0,Math.PI*2);x.fill();x.restore();}
+      const nx=-Math.sin(ang),ny=Math.cos(ang);label(`×${S.count}`,(pc[0]+p1[0])/2+nx*34*u,(pc[1]+p1[1])/2+ny*34*u,seg(.6,.9));}
+  }else{
+    const g=S.glide,f=rad(g.ang),ux=Math.cos(f),uy=Math.sin(f),gp=ap(base,g.x,g.y),su=[base[0]*ux+base[2]*uy,base[1]*ux+base[3]*uy],sl=Math.hypot(su[0],su[1]),dx=su[0]/sl,dy=su[1]/sl;
+    const R=Math.hypot(W,H)*EASE.smooth(seg(0,.45));
+    // 軸上で、パーツの重心に最も近い点
+    const ft=(partC.x-g.x)*ux+(partC.y-g.y)*uy,fw=[g.x+ft*ux,g.y+ft*uy],fp=ap(base,fw[0],fw[1]);
+    if(R>0){x.save();x.setLineDash([16*u,11*u]);x.beginPath();x.moveTo(fp[0]-dx*R,fp[1]-dy*R);x.lineTo(fp[0]+dx*R,fp[1]+dy*R);x.stroke();x.restore();}
+    const pr=EASE.smooth(seg(.45,.88));
+    if(pr>0){
+      if(Math.abs(g.shift)>1e-6){const e=ap(base,fw[0]+g.shift*ux*pr,fw[1]+g.shift*uy*pr),ang=Math.atan2(e[1]-fp[1],e[0]-fp[0]);
+        x.beginPath();x.moveTo(fp[0],fp[1]);x.lineTo(e[0],e[1]);x.stroke();arrowHead(x,e[0],e[1],ang,18*u);
+        label('映進',fp[0]-dy*44*u,fp[1]+dx*44*u,seg(.6,.9));}
+      else{const d=Math.hypot(pc[0]-fp[0],pc[1]-fp[1]),L=Math.max(30*u,Math.min(d*.7,140*u))*pr,nx=-dy,ny=dx;
+        x.beginPath();x.moveTo(fp[0]-nx*L,fp[1]-ny*L);x.lineTo(fp[0]+nx*L,fp[1]+ny*L);x.stroke();arrowHead(x,fp[0]+nx*L,fp[1]+ny*L,Math.atan2(ny,nx),16*u);arrowHead(x,fp[0]-nx*L,fp[1]-ny*L,Math.atan2(-ny,-nx),16*u);
+        label('鏡映',fp[0]+dx*60*u,fp[1]+dy*60*u,seg(.6,.9));}
+    }
+  }
+  x.restore();
 }
 function eachInstance(t,T,fn){const parts=byRole('part'),fixed=byRole('fixed');for(const sh of fixed)fn(sh,I);for(let k=0;k<S.count;k++){const M=Mint(k);for(const sh of parts)fn(sh,M);}}
 function textOn(){if(!S.text.on)return null;const title=(S.text.title||'').trim(),label=(S.text.label||'').trim();return title||label?{title,label}:null;}
@@ -564,8 +649,8 @@ function drawElements(x,t,T,W,H){
 let layerC=null;
 function frame(x,t,W,H){
   const T=timeline();t=clamp(t,0,T.end);const F=finState(t,T,W,H);
-  if(!F&&finOn()&&S.fin.pre>0){paintBg(x,W,H);x.save();x.globalAlpha=S.fin.pre;drawFinalImg(x,W,H);x.restore();frameArt(x,t,W,H,true);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
-  if(!F){frameArt(x,t,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
+  if(!F&&finOn()&&S.fin.pre>0){paintBg(x,W,H);x.save();x.globalAlpha=S.fin.pre;drawFinalImg(x,W,H);x.restore();frameArt(x,t,W,H,true);drawAxisFx(x,t,T,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
+  if(!F){frameArt(x,t,W,H);drawAxisFx(x,t,T,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
   const C=camera(W,H);if(!C)return;
   withPre(x,[F.ov,0,0,F.ov,W/2*(1-F.ov)+F.dx,H/2*(1-F.ov)+F.dy],()=>paintBg(x,W,H));
   if(F.imgA>0)withPre(x,[1,0,0,1,F.dx,F.dy],()=>{x.save();x.globalAlpha=F.imgA;drawFinalImg(x,W,H);x.restore();});
@@ -581,7 +666,7 @@ function frame(x,t,W,H){
 }
 function frameArt(x,t,W,H,noBg){
   const T=timeline();t=clamp(t,0,T.end);
-  if(!noBg)paintBg(x,W,H);
+  FW=W;if(!noBg)paintBg(x,W,H);
   const C=camera(W,H);if(!C)return;const b=C.b,sc=C.sc;let base=C.base;
   const e=clamp((t-T.effStart)/S.effDur);
   if(S.pop&&e>0&&e<1){const s=1+.04*Math.sin(Math.PI*e);base=mul([s,0,0,s,C.ox*(1-s),C.oy*(1-s)],base);}
@@ -590,13 +675,13 @@ function frameArt(x,t,W,H,noBg){
   let fixedA=1;
   if(S.fixedShow==='end'){fixedA=S.introFull&&t<T.splitEnd?1-clamp((t-T.fullEnd)/(T.splitEnd-T.fullEnd)):clamp((t-T.effStart)/Math.max(.3,S.effDur*.6));if(t>=T.effEnd)fixedA=1;}
   // 軌跡
-  if(S.trail&&partC&&t>=T.moveStart&&t<T.effStart+.3){
+  if(S.trail&&partC&&S.motion!=='stamp'&&S.motion!=='fade'&&t>=T.moveStart&&t<T.effStart+.3){
     const fade=1-clamp((t-T.moveEnd)/.6);
     if(fade>0){x.save();x.setTransform(...base);x.lineWidth=2/sc;x.setLineDash([6/sc,6/sc]);x.lineCap='round';
       for(let k=1;k<S.count;k++){const p=copyProgress(k,t,T);if(p<=0)continue;const a1=copyA(k,p),a0=S.order==='seq'?k-1:0;
         x.strokeStyle=S.explain==='split'?colOf(k):'#888';x.globalAlpha=.75*fade*(S.order==='seq'&&p>=1?1-clamp((t-(T.moveStart+(k-1)*(S.moveDur+T.gap)+S.moveDur))/.8):1);
         if(x.globalAlpha<=0)continue;x.beginPath();const steps=Math.max(2,Math.ceil((a1-a0)*40));
-        for(let i=0;i<=steps;i++){const[px,py]=ap(Mf(a0+(a1-a0)*i/steps),partC.x,partC.y);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();}
+        for(let i=0;i<=steps;i++){const pp=p*i/steps,[px,py]=ap(S.motion==='arc'||S.motion==='spin'||S.motion==='lift'?instM(k,pp).M:Mf(a0+(a1-a0)*i/steps),partC.x,partC.y);i?x.lineTo(px,py):x.moveTo(px,py);}x.stroke();}
       x.restore();x.globalAlpha=1;}
   }
   if(t<T.effStart){scene(x,base,t,T,mix,fixedA);return;}
@@ -822,6 +907,7 @@ function syncUI(){
   const c={part:0,copy:0,fixed:0};S.roles.forEach(r=>c[r]++);$('#roleCounts').textContent=`パーツ ${c.part}　複製 ${c.copy}　固定 ${c.fixed}`;
   $('#hint').textContent=S.view==='edit'?(SH.length?`図形をタップして「${{part:'パーツ',copy:'複製',fixed:'固定'}[S.brush]}」にします（もう一度タップで固定に戻す）。ドラッグで移動、2本指・Ctrl＋ホイールで拡大。`:'右の①から SVG を読み込んでください。'):'画面をタップで再生・一時停止。';
   $('#stageInfo').textContent=S.name?`「${S.name}」`:'';
+  $('#motionDesc').textContent={path:'変換そのままの動きで移ります。',lift:'紙を持ち上げるように少し大きくなり、影を落としながら移って置かれます。',arc:'上に弧を描いて、跳ぶように移ります。',spin:'移りながら、その場でくるっと1回転します。',stamp:'移動先の上に大きく現れ、判を押すように縮んで重なります。',fade:'移動先に、ふわっと浮かび上がります。'}[S.motion];
   buildCols();$('#colsBox').style.display=S.explain==='split'?'grid':'none';
   $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#finInfo').textContent=S.finImg?'画像あり':'画像なし';$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
   ensureFonts();
@@ -886,7 +972,7 @@ $('#shareBtn').onclick=async()=>{if(!outBlob)return;const f=new File([outBlob],o
 $('#dlBtn').onclick=()=>{if(!outURL)return;const a=document.createElement('a');a.href=outURL;a.download=outName();document.body.appendChild(a);a.click();a.remove();};
 
 /* ---------- storage ---------- */
-const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','fin','pop','endHold','bg','aspect','brush'];
+const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','motion','onion','outline','axisFx','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','fin','pop','endHold','bg','aspect','brush'];
 let DB=null;
 function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('motion-kobo')||'null'));}catch(_){res(null);}return;}
@@ -931,7 +1017,7 @@ document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,sele
 syncUI();updPlayIcon();
 (async()=>{
   await idb();const o=await kvGet();
-  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(S.finImg)setFin(S.finImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
+  if(o&&o.svg){KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin'||k==='axisFx')?Object.assign(S[k],o[k]):o[k];});if(S.bgImg)setBg(S.bgImg);if(S.finImg)setFin(S.finImg);if(!loadSVG(o.svg,o.name,o.roles))loadSample();else syncUI();}
   else loadSample();
   setT(timeline().end);
   if(document.fonts)document.fonts.ready.then(draw);
