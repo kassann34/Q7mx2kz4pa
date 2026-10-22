@@ -318,6 +318,17 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
         <div class="opt" style="align-items:start"><span style="padding-top:6px">消え方</span><div class="seg wrap" id="vanishSeg"><button data-set="fin.vanish" data-val="fade">透けて消える</button><button data-set="fin.vanish" data-val="mosaic">モザイク</button><button data-set="fin.vanish" data-val="tiles">タイル</button><button data-set="fin.vanish" data-val="sand">砂のように</button><button data-set="fin.vanish" data-val="scatter">飛び散る</button><button data-set="fin.vanish" data-val="wipe">ワイプ</button><button data-set="fin.vanish" data-val="zoom">拡大して抜ける</button></div></div>
         <div class="field"><label for="fFade">消える時間</label><input type="range" id="fFade" min="0.15" max="2" step="0.05" data-bind="fin.fade"><output data-out="fin.fade" data-unit="秒"></output></div>
         <div class="field"><label for="fWait">着地までの間</label><input type="range" id="fWait" min="0.2" max="3" step="0.1" data-bind="fin.wait"><output data-out="fin.wait" data-unit="秒"></output></div>
+        <hr class="sep">
+        <div class="opt" style="align-items:start"><span style="padding-top:6px">背景の消え方</span><div class="seg wrap" id="bgVanishSeg"><button data-set="fin.bgVanish" data-val="none">残す</button><button data-set="fin.bgVanish" data-val="fade">透けて消える</button><button data-set="fin.bgVanish" data-val="mosaic">モザイク</button><button data-set="fin.bgVanish" data-val="tiles">タイル</button><button data-set="fin.bgVanish" data-val="sand">砂のように</button><button data-set="fin.bgVanish" data-val="scatter">飛び散る</button><button data-set="fin.bgVanish" data-val="wipe">ワイプ</button><button data-set="fin.bgVanish" data-val="zoom">拡大して抜ける</button></div></div>
+        <div id="bgVanishOpts" style="display:flex;flex-direction:column;gap:10px">
+          <div class="field"><label for="bDelay">消え始め</label><input type="range" id="bDelay" min="0" max="2.5" step="0.05" data-bind="fin.bgDelay"><output data-out="fin.bgDelay" data-unit="秒後"></output></div>
+          <div class="field"><label for="bFade">消える時間</label><input type="range" id="bFade" min="0.15" max="2.5" step="0.05" data-bind="fin.bgFade"><output data-out="fin.bgFade" data-unit="秒"></output></div>
+          <div class="opt" style="align-items:start"><span style="padding-top:6px">着地後の背景</span><div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div class="row"><input type="color" data-bind="fin.afterColor" aria-label="着地後の背景色"><label class="btn" for="afFile" style="min-height:30px">画像を選ぶ</label><button class="btn" id="afClear" style="min-height:30px">外す</button><span class="desc" id="afInfo">画像なし</span></div>
+            <input type="file" id="afFile" accept="image/*" hidden>
+            <div class="seg"><button data-set="fin.afterFit" data-val="cover">画面を覆う</button><button data-set="fin.afterFit" data-val="contain">全体を収める</button></div></div></div>
+          <p class="desc">元の背景が消えると、その下から着地後の背景が現れます。「消え始め」は着地した瞬間からの時間です。前面より少し遅らせると、2段階で切り替わって見えます。</p>
+        </div>
       </div>
     </details>
 
@@ -365,7 +376,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
   order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,motion:'path',onion:false,outline:false,axisFx:{on:true,color:'#00A58E',label:true},fixedShow:'always',
-  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,vanish:'fade',wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
+  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',afterImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,vanish:'fade',bgVanish:'none',bgDelay:0,bgFade:1.2,afterColor:'#FFFFFF',afterFit:'cover',wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
 let SH=[]; // shapes
@@ -490,7 +501,7 @@ function timeline(){
     const an=S.text.anim,m=Math.max(0,n-1);T.titleDur={chars:.5+.09*m,line:1.1,type:.12*n+.25,rise:.6+.08*m,drop:.75+.09*m,spread:1.1,stamp:.7,wipe:1.0,fade:.8}[an]||.8;T.labelStart=T.textStart+T.titleDur-.15;
     T.textEnd=T.labelStart+(tx.label?.7:0);T.end=T.textEnd+S.endHold;}
   else{T.textStart=T.textEnd=Infinity;T.end=T.effEnd+S.endHold;}
-  if(finOn()){T.finStart=(isFinite(T.textEnd)?T.textEnd:T.effEnd)+S.fin.wait;T.impact=T.finStart+FIN_LIFT+FIN_DROP;T.finEnd=T.impact+Math.max(.6,S.fin.fade+.15);T.end=T.finEnd+S.endHold;}
+  if(finOn()){T.finStart=(isFinite(T.textEnd)?T.textEnd:T.effEnd)+S.fin.wait;T.impact=T.finStart+FIN_LIFT+FIN_DROP;T.finEnd=T.impact+Math.max(.6,S.fin.fade+.15,S.fin.bgVanish!=='none'?S.fin.bgDelay+S.fin.bgFade+.15:0);T.end=T.finEnd+S.endHold;}
   else T.finStart=T.impact=T.finEnd=Infinity;
   return T;
 }
@@ -661,7 +672,12 @@ function camera(W,H){
   const sc=Math.min(W*S.artScale/bw,H*S.artScale/bh),ox=W/2,oy=H*(.5+S.artY);
   return{b,sc,ox,oy,base:[sc,0,0,sc,ox-sc*cx,oy-sc*cy],top:oy-sc*bh/2,bottom:oy+sc*bh/2};
 }
-let bgImage=null;
+let bgImage=null,afterImage=null;
+function paintAfter(x,W,H){
+  x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle=S.fin.afterColor;x.fillRect(0,0,W,H);
+  if(S.afterImg&&afterImage&&afterImage.complete&&afterImage.naturalWidth){const iw=afterImage.naturalWidth,ih=afterImage.naturalHeight,r=S.fin.afterFit==='cover'?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih);
+    x.drawImage(afterImage,(W-iw*r)/2,(H-ih*r)/2,iw*r,ih*r);}
+}
 function paintBg(x,W,H){
   x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle=S.bg;x.fillRect(0,0,W,H);
   if(S.bgImg&&bgImage&&bgImage.complete&&bgImage.naturalWidth){const iw=bgImage.naturalWidth,ih=bgImage.naturalHeight,r=S.bgFit==='cover'?Math.max(W/iw,H/ih):Math.min(W/iw,H/ih);
@@ -684,8 +700,9 @@ function finState(t,T,W,H){
   let dx=0,dy=0;const amp={none:0,low:.006,mid:.013,high:.024}[S.fin.shake]*Math.min(W,H);
   if(u>imp&&amp){const v=u-imp,a=amp*Math.exp(-v*7);dx=a*Math.sin(v*57);dy=a*.75*Math.cos(v*43);}
   const vr=u<imp?0:clamp((u-imp)/Math.max(.05,S.fin.fade)),elemA=1-EASE.smooth(vr);
+  const vb=S.fin.bgVanish==='none'||u<imp+S.fin.bgDelay?0:clamp((u-imp-S.fin.bgDelay)/Math.max(.05,S.fin.bgFade));
   const pre=S.fin.pre||0,imgA=pre+(1-pre)*EASE.smooth(clamp((u-imp+.06)/.3));
-  return{s,dx,dy,elemA,vr,imgA,ov:1+2.2*amp/Math.min(W,H)};
+  return{s,dx,dy,elemA,vr,vb,imgA,ov:1+2.2*amp/Math.min(W,H)};
 }
 function drawElements(x,t,T,W,H){
   frameArt(x,t,W,H,true);const tx=textOn();
@@ -697,7 +714,12 @@ function frame(x,t,W,H){
   if(!F&&finOn()&&S.fin.pre>0){paintBg(x,W,H);x.save();x.globalAlpha=S.fin.pre;drawFinalImg(x,W,H);x.restore();frameArt(x,t,W,H,true);drawAxisFx(x,t,T,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
   if(!F){frameArt(x,t,W,H);drawAxisFx(x,t,T,W,H);const tx=textOn();if(tx&&t>=T.textStart){const C=camera(W,H);if(C){x.save();drawText(x,W,H,t,T,tx,C);x.restore();}}return;}
   const C=camera(W,H);if(!C)return;
-  withPre(x,[F.ov,0,0,F.ov,W/2*(1-F.ov)+F.dx,H/2*(1-F.ov)+F.dy],()=>paintBg(x,W,H));
+  const SHK=[F.ov,0,0,F.ov,W/2*(1-F.ov)+F.dx,H/2*(1-F.ov)+F.dy];
+  if(F.vb<=0)withPre(x,SHK,()=>paintBg(x,W,H));
+  else{withPre(x,SHK,()=>paintAfter(x,W,H));
+    if(F.vb<1){x.setTransform(1,0,0,1,0,0);const m0=x.getTransform(),cw0=x.canvas.width,ch0=x.canvas.height;const[bc,bg]=tmpC('bgL',cw0,ch0);
+      withPre(bg,mul([m0.a,m0.b,m0.c,m0.d,m0.e,m0.f],SHK),()=>paintBg(bg,W,H));
+      x.save();x.resetTransform();vanish(x,bc,F.vb,ap([m0.a,m0.b,m0.c,m0.d,m0.e,m0.f],C.ox,C.oy),S.fin.bgVanish,100);x.restore();}}
   if(F.imgA>0)withPre(x,[1,0,0,1,F.dx,F.dy],()=>{x.save();x.globalAlpha=F.imgA;drawFinalImg(x,W,H);x.restore();});
   if(F.elemA<=0)return;
   const G=mul([1,0,0,1,F.dx,F.dy],[F.s,0,0,F.s,C.ox*(1-F.s),C.oy*(1-F.s)]);
@@ -713,13 +735,13 @@ function frame(x,t,W,H){
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 const RND={};function rands(n,seed){const k=n+'_'+seed;if(!RND[k]){const r=rng(seed),a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=r();RND[k]=a;}return RND[k];}
 const tmpCs={};function tmpC(id,w,h){let c=tmpCs[id];if(!c){c=tmpCs[id]=document.createElement('canvas');}if(c.width!==w||c.height!==h){c.width=w;c.height=h;}const g=c.getContext('2d');g.resetTransform();g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,w,h);return[c,g];}
-function vanish(x,L,v,ctr){
-  const cw=L.width,ch=L.height,mn=Math.min(cw,ch),ty=S.fin.vanish;
+function vanish(x,L,v,ctr,ty=S.fin.vanish,sd=0){
+  const cw=L.width,ch=L.height,mn=Math.min(cw,ch);
   if(ty==='fade'||v<=0){x.globalAlpha=1-EASE.smooth(v);x.drawImage(L,0,0);return;}
   if(v>=1)return;
   if(ty==='mosaic'){const e=v*v,b=Math.max(1,1+mn/12*e),w=Math.max(1,Math.ceil(cw/b)),h=Math.max(1,Math.ceil(ch/b));const[c,g]=tmpC('mo',w,h);g.imageSmoothingEnabled=true;g.drawImage(L,0,0,w,h);
     x.imageSmoothingEnabled=false;x.globalAlpha=1-EASE.smooth(clamp((v-.5)/.5));x.drawImage(c,0,0,w,h,0,0,w*b,h*b);x.imageSmoothingEnabled=true;return;}
-  if(ty==='tiles'||ty==='scatter'){const nx=ty==='tiles'?12:14,sz=cw/nx,ny=Math.ceil(ch/sz),R=rands(nx*ny*3,ty==='tiles'?7:11);
+  if(ty==='tiles'||ty==='scatter'){const nx=ty==='tiles'?12:14,sz=cw/nx,ny=Math.ceil(ch/sz),R=rands(nx*ny*3,(ty==='tiles'?7:11)+sd);
     for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,sx=i*sz,sy=j*sz,w=Math.min(sz,cw-sx),h=Math.min(sz,ch-sy);if(w<=0||h<=0)continue;
       if(ty==='tiles'){const d=R[k*3]*.75,a=1-clamp((v-d)/.25);if(a<=0)continue;const sc=.35+.65*a;x.globalAlpha=a;
         x.drawImage(L,sx,sy,w,h,sx+w*(1-sc)/2,sy+h*(1-sc)/2,w*sc,h*sc);}
@@ -727,7 +749,7 @@ function vanish(x,L,v,ctr){
         const e=Math.pow(v,1.6),dist=e*mn*(.5+.9*R[k*3]),rot=(R[k*3+1]-.5)*2*Math.PI*e,sc=1-.35*e;
         x.globalAlpha=1-clamp((v-.25)/.75);x.save();x.translate(cx+dx*dist,cy+dy*dist+e*e*mn*.25);x.rotate(rot);x.scale(sc,sc);x.drawImage(L,sx,sy,w,h,-w/2,-h/2,w,h);x.restore();}}
     x.globalAlpha=1;return;}
-  if(ty==='sand'){const cell=Math.max(2,mn/220),w=Math.ceil(cw/cell),h=Math.ceil(ch/cell),R=rands(w*h,23),[mc,mg]=tmpC('mk',w,h),id=mg.createImageData(w,h),d=id.data;
+  if(ty==='sand'){const cell=Math.max(2,mn/220),w=Math.ceil(cw/cell),h=Math.ceil(ch/cell),R=rands(w*h,23+sd),[mc,mg]=tmpC('mk',w,h),id=mg.createImageData(w,h),d=id.data;
     const th=v*1.15-.08;for(let i=0;i<w*h;i++){const a=clamp((R[i]-th)*12);d[i*4+3]=a*255;}mg.putImageData(id,0,0);
     const[c,g]=tmpC('sd',cw,ch);g.drawImage(L,0,0);g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=false;g.drawImage(mc,0,0,w,h,0,0,w*cell,h*cell);
     x.drawImage(c,0,0);return;}
@@ -982,7 +1004,7 @@ function syncUI(){
   $('#stageInfo').textContent=S.name?`「${S.name}」`:'';
   $('#motionDesc').textContent={path:'変換そのままの動きで移ります。',lift:'紙を持ち上げるように少し大きくなり、影を落としながら移って置かれます。',arc:'上に弧を描いて、跳ぶように移ります。',spin:'移りながら、その場でくるっと1回転します。',stamp:'移動先の上に大きく現れ、判を押すように縮んで重なります。',fade:'移動先に、ふわっと浮かび上がります。'}[S.motion];
   buildCols();$('#colsBox').style.display=S.explain==='split'?'grid':'none';
-  $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#finInfo').textContent=S.finImg?'画像あり':'画像なし';$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
+  $('#bgInfo').textContent=S.bgImg?'画像あり':'画像なし';$('#finInfo').textContent=S.finImg?'画像あり':'画像なし';$('#afInfo').textContent=S.afterImg?'画像あり':'画像なし';$('#bgVanishOpts').style.opacity=S.fin.bgVanish==='none'?.45:1;$('#bgFitSeg').style.opacity=S.bgImg?1:.45;
   ensureFonts();
   syncInputs();renderPhases();
   if(S.view==='play'){const T=timeline();if(playT>T.end)playT=T.end;$('#tcode').textContent=`${playT.toFixed(1)} / ${T.end.toFixed(1)} 秒`;$('#scrub').value=Math.round(playT/T.end*1000);}
@@ -1045,7 +1067,7 @@ $('#shareBtn').onclick=async()=>{if(!outBlob)return;const f=new File([outBlob],o
 $('#dlBtn').onclick=()=>{if(!outURL)return;const a=document.createElement('a');a.href=outURL;a.download=outName();document.body.appendChild(a);a.click();a.remove();};
 
 /* ---------- storage ---------- */
-const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','motion','onion','outline','axisFx','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','fin','pop','endHold','bg','aspect','brush'];
+const KEYS=['name','svg','roles','mode','count','trans','rot','glide','order','ease','moveDur','introFull','trail','motion','onion','outline','axisFx','fixedShow','explain','finalMode','finalColor','effect','effDur','text','cols','artScale','artY','bgImg','bgFit','finImg','afterImg','fin','pop','endHold','bg','aspect','brush'];
 let DB=null;
 function idb(){return new Promise(res=>{try{const r=indexedDB.open('motion-kobo',2);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('works'))d.createObjectStore('works',{keyPath:'id'});};r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('motion-kobo')||'null'));}catch(_){res(null);}return;}
@@ -1059,7 +1081,7 @@ function stateObj(){const o={};KEYS.forEach(k=>o[k]=S[k]);return JSON.parse(JSON
 function applyState(o){
   if(!o||!o.svg)return false;
   KEYS.forEach(k=>{if(k in o&&k!=='svg'&&k!=='roles'&&k!=='name')S[k]=(k==='text'||k==='cols'||k==='fin'||k==='axisFx')?Object.assign(S[k],o[k]):o[k];});
-  if(!('bgImg' in o))S.bgImg='';if(!('finImg' in o))S.finImg='';setBg(S.bgImg);setFin(S.finImg);
+  if(!('bgImg' in o))S.bgImg='';if(!('finImg' in o))S.finImg='';if(!('afterImg' in o))S.afterImg='';setBg(S.bgImg);setFin(S.finImg);setAfter(S.afterImg);
   if(!loadSVG(o.svg,o.name,o.roles))return false;syncUI();return true;
 }
 function thumb(){const[aw,ah]=ASP[S.aspect],w=240,h=Math.round(240*ah/aw),c=document.createElement('canvas');c.width=w;c.height=h;
@@ -1121,9 +1143,16 @@ $('#finFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)ret
     toast('完成画像を設定しました。半透明の重ねを見ながら、大きさと位置を合わせてください。',5000);};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
 $('#finClear').onclick=()=>{setFin('');changed();syncUI();};
 function toAlign(){pause();if(S.view!=='play')S.view='play';syncUI();const T=timeline();if(isFinite(T.finStart))setT(T.finStart-.02);}
+$('#bgVanishSeg').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;if(b.dataset.val!=='fade'&&b.dataset.val!=='none'&&S.fin.bgFade<.8){S.fin.bgFade=1.2;syncInputs();changed();}});
 $('#vanishSeg').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;if(b.dataset.val!=='fade'&&S.fin.fade<.8){S.fin.fade=1.1;syncInputs();changed();}});
 document.querySelector('[data-bind="fin.overlay"]').addEventListener('change',e=>{if(e.target.checked&&S.finImg)toAlign();});
 function setFin(url){S.finImg=url;if(!url){finImage=null;draw();return;}finImage=new Image();finImage.onload=()=>draw();finImage.src=url;}
+function setAfter(url){S.afterImg=url;if(!url){afterImage=null;draw();return;}afterImage=new Image();afterImage.onload=()=>draw();afterImage.src=url;}
+$('#afFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{const m=2400,r=Math.min(1,m/Math.max(img.naturalWidth,img.naturalHeight));let url=String(rd.result);
+    if(r<1){const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*r);c.height=Math.round(img.naturalHeight*r);c.getContext('2d').drawImage(img,0,0,c.width,c.height);url=c.toDataURL('image/jpeg',.9);}
+    setAfter(url);if(S.fin.bgVanish==='none')S.fin.bgVanish='fade';changed();syncUI();toast('着地後の背景を設定しました。');};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
+$('#afClear').onclick=()=>{setAfter('');changed();syncUI();};
 function setBg(url){S.bgImg=url;if(!url){bgImage=null;draw();return;}bgImage=new Image();bgImage.onload=()=>draw();bgImage.src=url;}
 let fontKey='';
 function ensureFonts(){const tx=textOn();if(!tx||!document.fonts)return Promise.resolve();const k=S.text.font+'|'+tx.title+tx.label;if(k===fontKey)return Promise.resolve();fontKey=k;
