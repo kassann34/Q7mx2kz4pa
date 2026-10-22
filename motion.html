@@ -315,6 +315,7 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointe
         <p class="desc">動画の間、裏の完成画像をどれだけ見せておくかです。0% なら着地の瞬間まで完全に隠れています。</p>
         <div class="field"><label for="fLift">浮き上がり</label><input type="range" id="fLift" min="0" max="0.25" step="0.01" data-bind="fin.lift"><output data-out="fin.lift" data-pct></output></div>
         <div class="opt"><span>揺れ</span><div class="seg"><button data-set="fin.shake" data-val="none">なし</button><button data-set="fin.shake" data-val="low">弱め</button><button data-set="fin.shake" data-val="mid">ふつう</button><button data-set="fin.shake" data-val="high">強め</button></div></div>
+        <div class="opt" style="align-items:start"><span style="padding-top:6px">消え方</span><div class="seg wrap" id="vanishSeg"><button data-set="fin.vanish" data-val="fade">透けて消える</button><button data-set="fin.vanish" data-val="mosaic">モザイク</button><button data-set="fin.vanish" data-val="tiles">タイル</button><button data-set="fin.vanish" data-val="sand">砂のように</button><button data-set="fin.vanish" data-val="scatter">飛び散る</button><button data-set="fin.vanish" data-val="wipe">ワイプ</button><button data-set="fin.vanish" data-val="zoom">拡大して抜ける</button></div></div>
         <div class="field"><label for="fFade">消える時間</label><input type="range" id="fFade" min="0.15" max="2" step="0.05" data-bind="fin.fade"><output data-out="fin.fade" data-unit="秒"></output></div>
         <div class="field"><label for="fWait">着地までの間</label><input type="range" id="fWait" min="0.2" max="3" step="0.1" data-bind="fin.wait"><output data-out="fin.wait" data-unit="秒"></output></div>
       </div>
@@ -364,7 +365,7 @@ const SAMPLE=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
 <circle cx="345" cy="80" r="16" fill="#222"/></svg>`;
 const S={name:'サンプル',svg:'',roles:[],mode:'rot',count:2,trans:{x:0,y:0,dx:100,dy:0},rot:{cx:0,cy:0,angle:180,auto:true},glide:{x:0,y:0,ang:0,shift:100},
   order:'seq',ease:'smooth',moveDur:1.4,introFull:true,trail:true,motion:'path',onion:false,outline:false,axisFx:{on:true,color:'#00A58E',label:true},fixedShow:'always',
-  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
+  explain:'split',finalMode:'mono',finalColor:'#15171E',effect:'recolor',effDur:1.2,text:{on:true,title:'',label:'',font:'serif',anim:'chars',titleSize:1,labelSize:1,color:'#15171E',gap:1},cols:{part:'#1F5F8B',copies:[],fixed:'#B9BDC9'},artScale:.7,artY:0,bgImg:'',bgFit:'cover',finImg:'',fin:{on:true,fit:'contain',scale:1,x:0,y:0,overlay:false,pre:0,vanish:'fade',wait:.8,lift:.08,shake:'mid',fade:.5},pop:true,endHold:1.8,bg:'#F7F8F4',aspect:'1:1',view:'edit',brush:'part'};
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
 let SH=[]; // shapes
@@ -682,9 +683,9 @@ function finState(t,T,W,H){
   else{const v=u-imp;s=1-L*.18*Math.exp(-v*9)*Math.sin(v*24);}
   let dx=0,dy=0;const amp={none:0,low:.006,mid:.013,high:.024}[S.fin.shake]*Math.min(W,H);
   if(u>imp&&amp){const v=u-imp,a=amp*Math.exp(-v*7);dx=a*Math.sin(v*57);dy=a*.75*Math.cos(v*43);}
-  const elemA=u<imp?1:1-EASE.smooth(clamp((u-imp)/Math.max(.05,S.fin.fade)));
+  const vr=u<imp?0:clamp((u-imp)/Math.max(.05,S.fin.fade)),elemA=1-EASE.smooth(vr);
   const pre=S.fin.pre||0,imgA=pre+(1-pre)*EASE.smooth(clamp((u-imp+.06)/.3));
-  return{s,dx,dy,elemA,imgA,ov:1+2.2*amp/Math.min(W,H)};
+  return{s,dx,dy,elemA,vr,imgA,ov:1+2.2*amp/Math.min(W,H)};
 }
 function drawElements(x,t,T,W,H){
   frameArt(x,t,W,H,true);const tx=textOn();
@@ -700,13 +701,41 @@ function frame(x,t,W,H){
   if(F.imgA>0)withPre(x,[1,0,0,1,F.dx,F.dy],()=>{x.save();x.globalAlpha=F.imgA;drawFinalImg(x,W,H);x.restore();});
   if(F.elemA<=0)return;
   const G=mul([1,0,0,1,F.dx,F.dy],[F.s,0,0,F.s,C.ox*(1-F.s),C.oy*(1-F.s)]);
-  if(F.elemA>=1){withPre(x,G,()=>drawElements(x,t,T,W,H));return;}
+  if(F.vr<=0){withPre(x,G,()=>drawElements(x,t,T,W,H));return;}
   // 透けていく間は、重なりがにじまないよう別の紙に描いてから重ねる
   x.setTransform(1,0,0,1,0,0);const m=x.getTransform();const cw=x.canvas.width,ch=x.canvas.height;
   if(!layerC||layerC.width!==cw||layerC.height!==ch){layerC=document.createElement('canvas');layerC.width=cw;layerC.height=ch;}
   const o=layerC.getContext('2d');o.resetTransform();o.clearRect(0,0,cw,ch);
   withPre(o,mul([m.a,m.b,m.c,m.d,m.e,m.f],G),()=>drawElements(o,t,T,W,H));
-  x.save();x.resetTransform();x.globalAlpha=F.elemA;x.drawImage(layerC,0,0);x.restore();
+  x.save();x.resetTransform();vanish(x,layerC,F.vr,ap([m.a,m.b,m.c,m.d,m.e,m.f],C.ox,C.oy));x.restore();
+}
+/* ---------- 前面の消え方 ---------- */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const RND={};function rands(n,seed){const k=n+'_'+seed;if(!RND[k]){const r=rng(seed),a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=r();RND[k]=a;}return RND[k];}
+const tmpCs={};function tmpC(id,w,h){let c=tmpCs[id];if(!c){c=tmpCs[id]=document.createElement('canvas');}if(c.width!==w||c.height!==h){c.width=w;c.height=h;}const g=c.getContext('2d');g.resetTransform();g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,w,h);return[c,g];}
+function vanish(x,L,v,ctr){
+  const cw=L.width,ch=L.height,mn=Math.min(cw,ch),ty=S.fin.vanish;
+  if(ty==='fade'||v<=0){x.globalAlpha=1-EASE.smooth(v);x.drawImage(L,0,0);return;}
+  if(v>=1)return;
+  if(ty==='mosaic'){const e=v*v,b=Math.max(1,1+mn/12*e),w=Math.max(1,Math.ceil(cw/b)),h=Math.max(1,Math.ceil(ch/b));const[c,g]=tmpC('mo',w,h);g.imageSmoothingEnabled=true;g.drawImage(L,0,0,w,h);
+    x.imageSmoothingEnabled=false;x.globalAlpha=1-EASE.smooth(clamp((v-.5)/.5));x.drawImage(c,0,0,w,h,0,0,w*b,h*b);x.imageSmoothingEnabled=true;return;}
+  if(ty==='tiles'||ty==='scatter'){const nx=ty==='tiles'?12:14,sz=cw/nx,ny=Math.ceil(ch/sz),R=rands(nx*ny*3,ty==='tiles'?7:11);
+    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){const k=j*nx+i,sx=i*sz,sy=j*sz,w=Math.min(sz,cw-sx),h=Math.min(sz,ch-sy);if(w<=0||h<=0)continue;
+      if(ty==='tiles'){const d=R[k*3]*.75,a=1-clamp((v-d)/.25);if(a<=0)continue;const sc=.35+.65*a;x.globalAlpha=a;
+        x.drawImage(L,sx,sy,w,h,sx+w*(1-sc)/2,sy+h*(1-sc)/2,w*sc,h*sc);}
+      else{const cx=sx+w/2,cy=sy+h/2;let dx=cx-ctr[0],dy=cy-ctr[1];const dl=Math.hypot(dx,dy)||1;dx/=dl;dy/=dl;
+        const e=Math.pow(v,1.6),dist=e*mn*(.5+.9*R[k*3]),rot=(R[k*3+1]-.5)*2*Math.PI*e,sc=1-.35*e;
+        x.globalAlpha=1-clamp((v-.25)/.75);x.save();x.translate(cx+dx*dist,cy+dy*dist+e*e*mn*.25);x.rotate(rot);x.scale(sc,sc);x.drawImage(L,sx,sy,w,h,-w/2,-h/2,w,h);x.restore();}}
+    x.globalAlpha=1;return;}
+  if(ty==='sand'){const cell=Math.max(2,mn/220),w=Math.ceil(cw/cell),h=Math.ceil(ch/cell),R=rands(w*h,23),[mc,mg]=tmpC('mk',w,h),id=mg.createImageData(w,h),d=id.data;
+    const th=v*1.15-.08;for(let i=0;i<w*h;i++){const a=clamp((R[i]-th)*12);d[i*4+3]=a*255;}mg.putImageData(id,0,0);
+    const[c,g]=tmpC('sd',cw,ch);g.drawImage(L,0,0);g.globalCompositeOperation='destination-in';g.imageSmoothingEnabled=false;g.drawImage(mc,0,0,w,h,0,0,w*cell,h*cell);
+    x.drawImage(c,0,0);return;}
+  if(ty==='wipe'){const e=EASE.smooth(v),soft=cw*.14,edge=-soft+(cw+soft*2)*e,[c,g]=tmpC('wp',cw,ch);g.drawImage(L,0,0);g.globalCompositeOperation='destination-out';
+    const gr=g.createLinearGradient(edge-soft,0,edge,0);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,Math.max(0,edge),ch);
+    x.drawImage(c,0,0);return;}
+  if(ty==='zoom'){const e=v*v,s=1+.45*e;x.globalAlpha=1-EASE.smooth(v);x.translate(ctr[0],ctr[1]);x.scale(s,s);x.translate(-ctr[0],-ctr[1]);x.drawImage(L,0,0);return;}
+  x.globalAlpha=1-v;x.drawImage(L,0,0);
 }
 function frameArt(x,t,W,H,noBg){
   const T=timeline();t=clamp(t,0,T.end);
@@ -1092,6 +1121,7 @@ $('#finFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)ret
     toast('完成画像を設定しました。半透明の重ねを見ながら、大きさと位置を合わせてください。',5000);};img.onerror=()=>toast('画像を読み込めませんでした。');img.src=String(rd.result);};rd.readAsDataURL(f);};
 $('#finClear').onclick=()=>{setFin('');changed();syncUI();};
 function toAlign(){pause();if(S.view!=='play')S.view='play';syncUI();const T=timeline();if(isFinite(T.finStart))setT(T.finStart-.02);}
+$('#vanishSeg').addEventListener('click',e=>{const b=e.target.closest('[data-val]');if(!b)return;if(b.dataset.val!=='fade'&&S.fin.fade<.8){S.fin.fade=1.1;syncInputs();changed();}});
 document.querySelector('[data-bind="fin.overlay"]').addEventListener('change',e=>{if(e.target.checked&&S.finImg)toAlign();});
 function setFin(url){S.finImg=url;if(!url){finImage=null;draw();return;}finImage=new Image();finImage.onload=()=>draw();finImage.src=url;}
 function setBg(url){S.bgImg=url;if(!url){bgImage=null;draw();return;}bgImage=new Image();bgImage.onload=()=>draw();bgImage.src=url;}

@@ -1,6 +1,6 @@
 // アンビグラム工房 オフライン用 Service Worker
 // ファイルを差し替えたら VERSION を上げると、古い保存分が入れ替わります。
-const VERSION = 'ambigram-v13';
+const VERSION = 'ambigram-v14';
 const CORE = [
   './', './index.html', './zuchi.html', './chojo.html', './motion.html',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
