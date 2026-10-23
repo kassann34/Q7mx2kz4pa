@@ -110,6 +110,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .glist button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .sublist button{display:flex;align-items:baseline;justify-content:center;gap:3px}.sublist small{font-size:10px;opacity:.7}
 .flist{display:flex;flex-direction:column;gap:4px}.flist button{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:7px 10px;cursor:pointer;font-size:12.5px;text-align:left}
+.flist button[aria-pressed="true"] .fdot{box-shadow:0 0 0 2px #fff}
 .flist button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .gdesc{font-size:12px;padding:6px 8px;border-radius:7px;background:var(--surface-2)}
 .gdesc b{font-family:var(--f-mono)}
@@ -178,6 +179,7 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
   .sidehead{display:flex;justify-content:space-between;align-items:center;font-weight:700}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.fdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:0}
 </style>
 </head>
 <body>
@@ -264,6 +266,7 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
       <div class="pb">
         <div class="fgrid" id="fGrid"></div>
         <div class="flist" id="fList"></div>
+        <label class="chk" id="allFRow"><input type="checkbox" data-bind="incl.allF">すべての f を同時に表示（G で移した同じ働きの位置も）</label>
         <div class="verdict" id="verdict"></div>
         <p class="desc">「f で写す」側には、敷き詰めた模様を f で写したものが出ます。そこに B のガイドを重ねて、B の敷き詰めとして読めるかを確かめます。</p>
       </div>
@@ -547,7 +550,7 @@ const FOPTS=[
 ];
 const S={
   group:{cat:'frieze',name:'p111',n:4,a:240,b:200,gamma:75,theta:0,ox:0,oy:0},last:{finite:'C',frieze:'p111',wall:'p1'},
-  mode:'incl',incl:{gamma:'p2',sub:'p1',fi:0,autoB:true,cells:true},
+  mode:'incl',incl:{gamma:'p2',sub:'p1',fi:0,autoB:true,cells:true,allF:false},
   f:'r180',view:'both',look:'split',grid:true,snap:true,hiCopy:true,
   tool:'pen',penSize:18,eraseSize:40,pressure:true,penOnly:false,
   layers:[],cur:0,sidNext:1,
@@ -716,16 +719,36 @@ function drawRegion(x,r,sc,opts){
   x.restore();
 }
 // f の対称要素（回転の中心・鏡映軸・映進軸）を描く
-function drawFElem(x,base,R,unit){
-  const w=Fm(),ii=inclInfo(),k=ii.f.kind;x.save();x.setTransform(...base);x.strokeStyle='#C8321F';x.fillStyle='#C8321F';x.lineWidth=2.4*unit;
-  const L=Math.hypot(R.x1-R.x0,R.y1-R.y0)*2;
-  if(k==='rot'){const A=[1-w[0],-w[1],-w[2],1-w[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*w[4]-A[2]*w[5])/dt,cy=(-A[1]*w[4]+A[0]*w[5])/dt,n=ii.f.n,r=11*unit;
+const FCOL=['#C8321F','#1F6FC8','#2E9A3E','#B5179E','#E08A00','#0A9396','#6A4C93','#8D5524','#D6336C','#495057','#7CB518','#3A0CA3','#F15BB5','#00B4D8','#9C6644','#FF7F11','#5E548E','#2B9348'];
+const fColor=i=>FCOL[i%FCOL.length];
+// 変換 w（世界座標）の対称要素を描く
+function drawElem(x,w,k,n,col,unit,L,dim){
+  x.strokeStyle=col;x.fillStyle=col;x.lineWidth=(dim?1.6:2.4)*unit;x.globalAlpha=dim?.7:1;
+  if(k==='rot'){const A=[1-w[0],-w[1],-w[2],1-w[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*w[4]-A[2]*w[5])/dt,cy=(-A[1]*w[4]+A[0]*w[5])/dt,r=(dim?8:11)*unit;
     x.beginPath();if(n===2){x.ellipse(cx,cy,r*1.25,r*.6,rad(G().theta),0,Math.PI*2);}else for(let i=0;i<n;i++){const t=-Math.PI/2+2*Math.PI*i/n;i?x.lineTo(cx+r*Math.cos(t),cy+r*Math.sin(t)):x.moveTo(cx+r*Math.cos(t),cy+r*Math.sin(t));}
-    x.closePath();x.globalAlpha=.85;x.fill();x.globalAlpha=1;x.strokeStyle='#fff';x.lineWidth=1.5*unit;x.stroke();}
+    x.closePath();x.globalAlpha*=.85;x.fill();x.globalAlpha=dim?.7:1;x.strokeStyle='#fff';x.lineWidth=1.5*unit;x.stroke();}
   else if(k==='mirror'||k==='glide'){let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];const dl=Math.hypot(...d);d=[d[0]/dl,d[1]/dl];
     const t=[w[4],w[5]],Lt=[w[0]*t[0]+w[2]*t[1],w[1]*t[0]+w[3]*t[1]],gv=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],p=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4];
     if(k==='glide')x.setLineDash([10*unit,7*unit]);x.beginPath();x.moveTo(p[0]-d[0]*L,p[1]-d[1]*L);x.lineTo(p[0]+d[0]*L,p[1]+d[1]*L);x.stroke();x.setLineDash([]);
     if(k==='glide'){const e=[p[0]+gv[0],p[1]+gv[1]],an=Math.atan2(gv[1],gv[0]),h=12*unit;x.beginPath();x.moveTo(e[0],e[1]);x.lineTo(e[0]-h*Math.cos(an-.45),e[1]-h*Math.sin(an-.45));x.lineTo(e[0]-h*Math.cos(an+.45),e[1]-h*Math.sin(an+.45));x.closePath();x.fill();}}
+  else if(k==='trans'){const o=[G().ox,G().oy],v=[o[0]+w[4]+(w[0]-1)*o[0]+w[2]*o[1],o[1]+w[5]+w[1]*o[0]+(w[3]-1)*o[1]],h=10*unit,an=Math.atan2(v[1]-o[1],v[0]-o[0]);x.beginPath();x.moveTo(o[0],o[1]);x.lineTo(v[0],v[1]);x.stroke();x.beginPath();x.moveTo(v[0],v[1]);x.lineTo(v[0]-h*Math.cos(an-.45),v[1]-h*Math.sin(an-.45));x.lineTo(v[0]-h*Math.cos(an+.45),v[1]-h*Math.sin(an+.45));x.closePath();x.fill();}
+  x.globalAlpha=1;
+}
+function drawFElem(x,base,R,unit){
+  const ii=inclInfo(),L=Math.hypot(R.x1-R.x0,R.y1-R.y0)*2;x.save();x.setTransform(...base);
+  if(S.incl.allF){
+    // すべての f を、G で移した同じ働きの位置（共役）も含めて描く
+    const B=basis(G()),Bi=inv(B),O=GROUPS[S.incl.gamma].ops;
+    let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const[px,py]of[[R.x0,R.y0],[R.x1,R.y0],[R.x0,R.y1],[R.x1,R.y1]]){const q=ap(Bi,px,py);u0=Math.min(u0,q[0]);u1=Math.max(u1,q[0]);v0=Math.min(v0,q[1]);v1=Math.max(v1,q[1]);}
+    u0=Math.floor(u0)-1;u1=Math.ceil(u1)+1;v0=Math.floor(v0)-1;v1=Math.ceil(v1)+1;
+    if((u1-u0)*(v1-v0)<=900){
+      const order=ii.fc.map((_,i)=>i).filter(i=>i!==ii.fi).concat([ii.fi]);
+      for(const fi of order){const f=ii.fc[fi];if(f.kind==='trans')continue;const seen=new Set();
+        for(const s of ii.sg.set)for(let m=u0;m<=u1;m++)for(let n=v0;n<=v1;n++){const g=O[s].slice();g[4]+=m;g[5]+=n;
+          const c=mul(g,mul(f.e,inv(g))),key=c.map(v=>Math.round(v*1e4)).join(',');if(seen.has(key))continue;seen.add(key);
+          drawElem(x,mul(B,mul(c,Bi)),f.kind,f.n,fColor(fi),unit,L,fi!==ii.fi);}}
+    }
+  }else drawElem(x,Fm(),ii.f.kind,ii.f.n,'#C8321F',unit,L,false);
   x.restore();
 }
 function handles(){
@@ -786,12 +809,12 @@ function syncUI(inputs=true){
   document.querySelectorAll('[data-set]').forEach(b=>b.setAttribute('aria-pressed',String(getP(b.dataset.set))===b.dataset.val));
   document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===g.cat));
   document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
-  const inc=inclOn();$('#catSeg').style.display=inc?'none':'flex';$('#inclBox').style.display=inc?'flex':'none';$('#fGrid').style.display=inc?'none':'grid';$('#fList').style.display=inc?'flex':'none';$('#autoBRow').style.display=inc?'flex':'none';
+  const inc=inclOn();$('#catSeg').style.display=inc?'none':'flex';$('#inclBox').style.display=inc?'flex':'none';$('#fGrid').style.display=inc?'none':'grid';$('#fList').style.display=inc?'flex':'none';$('#autoBRow').style.display=inc?'flex':'none';$('#allFRow').style.display=inc?'flex':'none';
   $('#gHead').textContent=inc?'最終的な文様 Γ':'敷き詰め方';
   $('#gList').innerHTML=(inc?CATS.wall.filter(n=>n!=='p1'):CATS[g.cat]).map(n=>`<button data-g="${n}" aria-pressed="${n===g.name}" title="${g.cat==='finite'?FINDESC[n]:GROUPS[n].desc}">${g.cat==='finite'?n+'n':n}</button>`).join('');
   if(inc){const ii=inclInfo();S.incl.sub=ii.sg.label;S.incl.fi=ii.fi;
     $('#subList').innerHTML=ii.subs.map(x=>`<button data-sub="${x.label}" aria-pressed="${x.label===ii.sg.label}" title="指数 ${x.index}">${x.label}<small>×${x.index}</small></button>`).join('');
-    $('#fList').innerHTML=ii.fc.map((f,i)=>`<button data-fi="${i}" aria-pressed="${i===ii.fi}">${f.label}</button>`).join('');
+    $('#fList').innerHTML=ii.fc.map((f,i)=>`<button data-fi="${i}" aria-pressed="${i===ii.fi}">${S.incl.allF?`<span class="fdot" style="background:${fColor(i)}"></span>`:''}${f.label}</button>`).join('');
     $('#inclName').textContent=`${ii.sg.name}敷詰${S.incl.gamma}同一型`;$('#cellRatio').textContent=`G の単位領域は Γ の単位領域 ${ii.sg.index} 枚分（指数 ${ii.sg.index}）`;}
   $('#nRow').style.display=g.cat==='finite'?'flex':'none';$('#nOut').textContent=g.n;
   const gg=GROUPS[g.name];
