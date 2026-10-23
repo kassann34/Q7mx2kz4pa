@@ -485,13 +485,25 @@ function drawStroke(x,st){
 function boxOf(list){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,any=false;
   for(const st of list){if(st.t==='e')continue;const h=(st.pr?st.w*1.75:st.w)/2+2;for(const q of st.p){any=true;x0=Math.min(x0,q[0]-h);y0=Math.min(y0,q[1]-h);x1=Math.max(x1,q[0]+h);y1=Math.max(y1,q[1]+h);}}
   return any?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null;}
-function build(list,sc0){const b=boxOf(list);if(!b)return null;const sc=Math.max(.05,Math.min(sc0,4096/Math.max(b.w,b.h)));
-  const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(b.w*sc));c.height=Math.max(1,Math.ceil(b.h*sc));
-  const x=c.getContext('2d');x.setTransform(sc,0,0,sc,-b.x*sc,-b.y*sc);for(const st of list)drawStroke(x,st);return{c,sc,tints:{},...b};}
-function tinted(m,col){if(m.tints[col])return m.tints[col];const t=document.createElement('canvas');t.width=m.c.width;t.height=m.c.height;
-  const x=t.getContext('2d');x.drawImage(m.c,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,t.width,t.height);return m.tints[col]=t;}
-let dirty=true,caches=new Map(),cacheSc=0;
-function getCaches(want){if(dirty||!cacheSc||cacheSc<want*.8||cacheSc>want*1.6){dirty=false;cacheSc=want*1.2;caches=new Map();for(const l of S.layers)caches.set(l.id,build(l.strokes,cacheSc));}return caches;}
+// iPad の Safari は画像用の領域の上限が厳しく、作っては捨てるを繰り返すと描けなくなる。
+// そこで、レイヤーごと・色ごとの領域を作り置きして、中身だけ描き直す。
+const MAXPX=1.2e6;
+function rebuildInto(e,list,sc0){const b=boxOf(list);if(!b){e.empty=true;return;}e.empty=false;
+  const sc=Math.max(.02,Math.min(sc0,4096/Math.max(b.w,b.h),Math.sqrt(MAXPX/Math.max(1,b.w*b.h))));
+  const W=Math.max(1,Math.ceil(b.w*sc)),H=Math.max(1,Math.ceil(b.h*sc));if(e.c.width!==W||e.c.height!==H){e.c.width=W;e.c.height=H;}
+  const x=e.c.getContext('2d');if(!x){e.empty=true;return;}x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='source-over';x.clearRect(0,0,W,H);
+  x.setTransform(sc,0,0,sc,-b.x*sc,-b.y*sc);for(const st of list)drawStroke(x,st);Object.assign(e,{x:b.x,y:b.y,w:b.w,h:b.h,ver:(e.ver||0)+1});}
+function tinted(e,col){let t=e.tints.get(col);
+  if(!t){if(e.tints.size>=16){for(const v of e.tints.values()){v.c.width=v.c.height=0;}e.tints.clear();}t={c:document.createElement('canvas'),ver:-1};e.tints.set(col,t);}
+  if(t.ver!==e.ver){if(t.c.width!==e.c.width||t.c.height!==e.c.height){t.c.width=e.c.width;t.c.height=e.c.height;}const x=t.c.getContext('2d');
+    if(x){x.globalCompositeOperation='source-over';x.clearRect(0,0,t.c.width,t.c.height);x.drawImage(e.c,0,0);x.globalCompositeOperation='source-in';x.fillStyle=col;x.fillRect(0,0,t.c.width,t.c.height);}t.ver=e.ver;}
+  return t.c;}
+let dirty=true,cacheSc=0;const caches=new Map();
+function getCaches(want){
+  if(dirty||!cacheSc||cacheSc<want*.8||cacheSc>want*1.6){dirty=false;cacheSc=want*1.2;
+    for(const l of S.layers){let e=caches.get(l.id);if(!e){e={c:document.createElement('canvas'),tints:new Map(),empty:true};caches.set(l.id,e);}rebuildInto(e,l.strokes,cacheSc);}
+    for(const id of [...caches.keys()])if(!S.layers.some(l=>l.id===id)){const e=caches.get(id);e.c.width=e.c.height=0;e.tints.forEach(t=>{t.c.width=t.c.height=0;});caches.delete(id);}}
+  return caches;}
 // グリフの中心と半径
 function glyph(){const b=boxOf(S.layers.filter(l=>l.rep).flatMap(l=>l.strokes));
   if(!b)return{c:[S.gA.x,S.gA.y],r:Math.max(60,S.gA.size*.6)};return{c:[b.x+b.w/2,b.y+b.h/2],r:Math.hypot(b.w,b.h)/2};}
@@ -547,7 +559,7 @@ function drawRegion(x,r,sc,opts){
   const gls=gOn?guideList():[];
   if(gOn){x.globalAlpha=S.galpha*.35;for(const[M,g,c]of gls)guideDraw(x,M,g,c,'fill');x.globalAlpha=1;}
   const C=getCaches(V.z*sc);
-  for(const l of S.layers){const m=C.get(l.id);if(!l.show||!m)continue;
+  for(const l of S.layers){const m=C.get(l.id);if(!l.show||!m||m.empty)continue;
     if(!opts.ui&&l.style==='pencil')continue;
     if(l.rep){for(const e of orb){const col=l.style==='pencil'?LC(l):(S.look==='mono'?S.colors.mono:PAL[e.i%PAL.length]);
         x.setTransform(...mul(base,e.m));x.globalAlpha=l.alpha*(l.style==='ink'&&S.look==='split'?.92:1);x.drawImage(tinted(m,col),m.x,m.y,m.w,m.h);}}
@@ -634,7 +646,8 @@ $('#brush').addEventListener('input',e=>{S[sizeKey()]=+e.target.value;syncUI(fal
 /* ---------- layers ---------- */
 const EYE='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1.5 10S5 4.5 10 4.5 18.5 10 18.5 10 15 15.5 10 15.5 1.5 10 1.5 10z"/><circle cx="10" cy="10" r="2.6"/></svg>';
 const escH=v=>String(v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function hex(c){const d=document.createElement('canvas').getContext('2d');d.fillStyle='#000';d.fillStyle=c;const v=d.fillStyle;if(v[0]==='#')return v;const m=v.match(/[\d.]+/g).map(Number);return'#'+m.slice(0,3).map(n=>Math.round(n).toString(16).padStart(2,'0')).join('');}
+const HEXC=(()=>{const c=document.createElement('canvas');c.width=c.height=1;return c.getContext('2d');})();
+function hex(c){const d=HEXC;d.fillStyle='#000';d.fillStyle=c;const v=d.fillStyle;if(v[0]==='#')return v;const m=v.match(/[\d.]+/g).map(Number);return'#'+m.slice(0,3).map(n=>Math.round(n).toString(16).padStart(2,'0')).join('');}
 function renderLayers(){
   const L=curL();if(!L)return;
   $('#lList').innerHTML=S.layers.slice().reverse().map(l=>`<div class="lrow" data-lid="${l.id}" aria-current="${l.id===L.id}" role="button" tabindex="0">
@@ -772,7 +785,7 @@ $('#exBtn').onclick=()=>{
   for(const r of rs)drawRegion(x,r,sc,{ui:false,guides:S.ex.guides});
   if(rs.length>1){x.setTransform(sc,0,0,sc,0,0);x.fillStyle='#FFFFFF';const r=rs[1];if(r.x>0)x.fillRect(r.x-2,0,4,H);else x.fillRect(0,r.y-2,W,4);}
   S.view=prev;draw();
-  c.toBlob(b=>{if(!b)return;exBlob=b;$('#exImg').src=URL.createObjectURL(b);$('#exResult').hidden=false;$('#exSave').hidden=framed;},'image/png');
+  c.toBlob(b=>{c.width=c.height=0;if(!b)return;exBlob=b;$('#exImg').src=URL.createObjectURL(b);$('#exResult').hidden=false;$('#exSave').hidden=framed;},'image/png');
 };
 $('#exShare').onclick=async()=>{if(!exBlob)return;const f=new File([exBlob],`${(S.name||'敷詰').replace(/[\\/:*?"<>|]/g,'_')}.png`,{type:'image/png'});
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return;}}catch(e){if(e&&e.name==='AbortError')return;}
@@ -799,7 +812,7 @@ function wDel(id){return new Promise(res=>{if(!DB){MEMW.delete(id);res();return;
 function thumb(){const c=document.createElement('canvas'),s=240;c.width=c.height=s;const prevV={...V},gl=glyph(),g=G();
   const span=g.cat==='finite'?(Math.hypot(gl.c[0]-g.ox,gl.c[1]-g.oy)+gl.r)*2.3:Math.max((g.cat==='frieze'?g.a:Math.max(g.a,g.b||g.a))*2.6,gl.r*3);
   V.z=s/Math.max(60,span);const cx=g.cat==='finite'?g.ox:gl.c[0],cy=g.cat==='finite'?g.oy:gl.c[1];V.ox=s/2-V.z*cx;V.oy=s/2-V.z*cy;
-  try{drawRegion(c.getContext('2d'),{x:0,y:0,w:s,h:s,k:'pattern'},1,{ui:false,guides:false});}catch(_){}Object.assign(V,prevV);dirty=true;return c.toDataURL('image/jpeg',.8);}
+  try{drawRegion(c.getContext('2d'),{x:0,y:0,w:s,h:s,k:'pattern'},1,{ui:false,guides:false});}catch(_){}Object.assign(V,prevV);dirty=true;const u=c.toDataURL('image/jpeg',.8);c.width=c.height=0;return u;}
 const fmtD=t=>{const d=new Date(t);return`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;};
 let curWork=null;const delArmW={};
 async function renderWorks(){const list=(await wAll()).sort((a,b)=>b.updated-a.updated);
