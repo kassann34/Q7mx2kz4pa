@@ -242,6 +242,8 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
           <span class="desc">敷詰方法 G（Γ の部分群）</span>
           <div class="glist sublist" id="subList"></div>
           <div class="gdesc"><b id="inclName"></b><br>描いた線は Γ で複製されます。グリフは G で敷き詰めたものとして読み、Γ にあって G にない変換が f になります。</div>
+          <label class="chk"><input type="checkbox" data-bind="incl.cells">単位領域を表示</label>
+          <div class="gdesc" id="cellLegend"><span style="display:inline-block;width:14px;height:10px;border:2px dashed rgba(43,90,200,.85);background:rgba(43,90,200,.10);vertical-align:-1px"></span> G の単位領域（グリフ 1 つ分）　<span style="display:inline-block;width:14px;height:10px;border:2px solid rgba(222,95,25,.95);background:rgba(232,110,40,.20);vertical-align:-1px"></span> Γ の単位領域（等価な点を 2 つ以上含まない）<br><span id="cellRatio"></span></div>
         </div>
         <div class="row" id="nRow"><span class="desc">回転の数 n</span><div class="stepper"><button id="nMinus" aria-label="減らす">−</button><output id="nOut"></output><button id="nPlus" aria-label="増やす">＋</button></div></div>
         <div class="gdesc" id="gDesc"></div>
@@ -545,7 +547,7 @@ const FOPTS=[
 ];
 const S={
   group:{cat:'frieze',name:'p111',n:4,a:240,b:200,gamma:75,theta:0,ox:0,oy:0},last:{finite:'C',frieze:'p111',wall:'p1'},
-  mode:'incl',incl:{gamma:'p2',sub:'p1',fi:0,autoB:true},
+  mode:'incl',incl:{gamma:'p2',sub:'p1',fi:0,autoB:true,cells:true},
   f:'r180',view:'both',look:'split',grid:true,snap:true,hiCopy:true,
   tool:'pen',penSize:18,eraseSize:40,pressure:true,penOnly:false,
   layers:[],cur:0,sidNext:1,
@@ -560,6 +562,26 @@ const LC=l=>l.color||S.colors.pencil;
 const sizeKey=()=>S.tool==='erase'?'eraseSize':'penSize';
 const V={z:1,ox:0,oy:0};
 const cv=$('#cv'),ctx=cv.getContext('2d'),board=$('#board');
+/* ---------- 単位領域（基本領域） ---------- */
+// Γ の基本領域（等価な点を 2 つ以上含まない最小の領域）を、格子の分数座標で
+{const h=1/2,t=1/3,tt=2/3,q=1/4;
+var AUREG={p1:[[0,0],[1,0],[1,1],[0,1]],p2:[[0,0],[h,0],[h,1],[0,1]],pm:[[0,0],[h,0],[h,1],[0,1]],pg:[[0,0],[1,0],[1,h],[0,h]],
+ cm:[[0,0],[h,0],[h,h],[0,h]],pmm:[[0,0],[h,0],[h,h],[0,h]],pmg:[[0,0],[q,0],[q,1],[0,1]],pgg:[[0,0],[h,0],[h,h],[0,h]],cmm:[[0,0],[q,0],[q,h],[0,h]],
+ p4:[[0,0],[h,0],[h,h],[0,h]],p4m:[[0,0],[h,0],[h,h]],p4g:[[0,0],[h,0],[0,h]],
+ p3:[[0,0],[tt,t],[1,1],[t,tt]],p3m1:[[0,0],[tt,t],[t,tt]],p31m:[[0,0],[1,0],[tt,t]],p6:[[0,0],[1,0],[tt,t]],p6m:[[0,0],[h,0],[tt,t]]};}
+// G の基本領域：Γ の基本領域を、G の剰余類ごとに 1 枚ずつ、辺でつながるように集める
+const REGMEMO={};
+function unitRegions(name,set){const k=name+'|'+set.join(',');if(REGMEMO[k])return REGMEMO[k];
+  const O=GROUPS[name].ops,A=AUREG[name],cls=cosetClasses(name,set),key=p=>p.map(v=>Math.round(v*1e5)).join(',');
+  const cen=P=>[P.reduce((s,p)=>s+p[0],0)/P.length,P.reduce((s,p)=>s+p[1],0)/P.length];
+  const shares=(P,Q)=>{const s=new Set(Q.map(key));return P.filter(p=>s.has(key(p))).length>=2;};
+  const pieces=[A],done=new Set([cls[0]]),c0=cen(A),nC=Math.max(...cls)+1;
+  for(let guard=0;done.size<nC&&guard<nC*2;guard++){let best=null;
+    O.forEach((o,i)=>{if(done.has(cls[i]))return;for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++){
+      const P=A.map(p=>{const r=ap(o,p[0],p[1]);return[r[0]+m,r[1]+n];});if(!pieces.some(Q=>shares(P,Q)))continue;
+      const c=cen(P),d=Math.hypot(c[0]-c0[0],c[1]-c0[1]);if(!best||d<best.d-1e-9)best={P,d,c:cls[i]};}});
+    if(!best)break;pieces.push(best.P);done.add(best.c);}
+  return REGMEMO[k]={au:A,pieces};}
 const G=()=>S.group;
 const fLin=()=>FOPTS.find(o=>o[0]===S.f)[2];
 const inclOn=()=>S.mode==='incl';
@@ -643,7 +665,21 @@ function drawGrid(x,base,R,unit){
   for(let n=v0;n<=v1;n++){const a=ap(B,u0,n),b=ap(B,u1,n);x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);}x.stroke();
   // 原点の格子を少し濃く
   x.strokeStyle='rgba(0,165,142,.7)';x.lineWidth=unit*1.6;x.beginPath();const p0=ap(B,0,0),p1=ap(B,1,0),p2=ap(B,1,1),p3=ap(B,0,1);
-  x.moveTo(...p0);x.lineTo(...p1);x.lineTo(...p2);x.lineTo(...p3);x.closePath();x.stroke();x.restore();
+  x.moveTo(...p0);x.lineTo(...p1);x.lineTo(...p2);x.lineTo(...p3);x.closePath();x.stroke();
+  if(inclOn()&&S.incl.cells!==false)drawUnitRegions(x,B,unit);
+  x.restore();
+}
+// G の単位領域（青）と Γ の単位領域（橙）
+function drawUnitRegions(x,B,unit,top){
+  const ii=inclInfo(),R=unitRegions(S.incl.gamma,ii.sg.set),path=P=>{x.beginPath();P.forEach((p,k)=>{const q=ap(B,p[0],p[1]);k?x.lineTo(q[0],q[1]):x.moveTo(q[0],q[1]);});x.closePath();};
+  if(!top){x.fillStyle='rgba(43,90,200,.10)';for(const P of R.pieces){path(P);x.fill();}}
+  // 外周だけを線で（内側の継ぎ目は描かない）
+  const key=p=>p.map(v=>Math.round(v*1e5)).join(','),cnt=new Map(),edges=[];
+  for(const P of R.pieces)P.forEach((a,k)=>{const b=P[(k+1)%P.length],kk=[key(a),key(b)].sort().join('|');cnt.set(kk,(cnt.get(kk)||0)+1);edges.push([a,b,kk]);});
+  x.strokeStyle='rgba(43,90,200,.85)';x.lineWidth=unit*2;x.setLineDash([7*unit,4*unit]);x.beginPath();
+  for(const[a,b,kk]of edges)if(cnt.get(kk)===1){const p=ap(B,a[0],a[1]),q=ap(B,b[0],b[1]);x.moveTo(p[0],p[1]);x.lineTo(q[0],q[1]);}
+  x.stroke();x.setLineDash([]);
+  path(R.au);if(!top){x.fillStyle='rgba(232,110,40,.20)';x.fill();}x.strokeStyle='rgba(222,95,25,.95)';x.lineWidth=unit*2.4;x.stroke();
 }
 // x: 文脈, r: 領域, sc: CSS→デバイス倍率, opts:{ui,guides}
 function drawRegion(x,r,sc,opts){
@@ -670,6 +706,7 @@ function drawRegion(x,r,sc,opts){
   x.globalAlpha=1;
   if(gOn){x.globalAlpha=Math.min(1,S.galpha*1.6);for(const[M,g,c]of gls){x.save();x.lineWidth=1.4/V.z/(Math.hypot(M[0],M[1])/sc/V.z||1);guideDraw(x,M,g,c,'stroke');x.restore();}x.globalAlpha=1;}
   if(opts.ui){
+    if(inclOn()&&S.grid&&S.incl.cells!==false){x.save();x.setTransform(...base);drawUnitRegions(x,basis(G()),unit,true);x.restore();}
     if(inclOn()&&!fv)drawFElem(x,base,R,unit);
     if(S.hiCopy&&act&&act.type==='draw'&&act.g){x.setTransform(...base);const c=ap(act.g,gl.c[0],gl.c[1]);x.strokeStyle=AXIS;x.lineWidth=2*unit;x.setLineDash([6*unit,5*unit]);x.beginPath();x.arc(c[0],c[1],gl.r,0,Math.PI*2);x.stroke();x.setLineDash([]);}
     // 領域の見出し
@@ -755,7 +792,7 @@ function syncUI(inputs=true){
   if(inc){const ii=inclInfo();S.incl.sub=ii.sg.label;S.incl.fi=ii.fi;
     $('#subList').innerHTML=ii.subs.map(x=>`<button data-sub="${x.label}" aria-pressed="${x.label===ii.sg.label}" title="指数 ${x.index}">${x.label}<small>×${x.index}</small></button>`).join('');
     $('#fList').innerHTML=ii.fc.map((f,i)=>`<button data-fi="${i}" aria-pressed="${i===ii.fi}">${f.label}</button>`).join('');
-    $('#inclName').textContent=`${ii.sg.name}敷詰${S.incl.gamma}同一型`;}
+    $('#inclName').textContent=`${ii.sg.name}敷詰${S.incl.gamma}同一型`;$('#cellRatio').textContent=`G の単位領域は Γ の単位領域 ${ii.sg.index} 枚分（指数 ${ii.sg.index}）`;}
   $('#nRow').style.display=g.cat==='finite'?'flex':'none';$('#nOut').textContent=g.n;
   const gg=GROUPS[g.name];
   $('#gDesc').innerHTML=g.cat==='finite'?`<b>${g.name}${g.n}</b>　${FINDESC[g.name]}（n=${g.n}）`:`<b>${g.name}</b>　${gg.desc}${g.cat==='wall'?`・${LATNAME[gg.lat]}格子`:'・帯状'}`;
