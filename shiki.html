@@ -108,6 +108,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:4px}
 .glist button{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:6px 4px;cursor:pointer;font-family:var(--f-mono);font-size:12.5px;font-weight:500}
 .glist button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.sublist button{display:flex;align-items:baseline;justify-content:center;gap:3px}.sublist small{font-size:10px;opacity:.7}
+.flist{display:flex;flex-direction:column;gap:4px}.flist button{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:7px 10px;cursor:pointer;font-size:12.5px;text-align:left}
+.flist button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .gdesc{font-size:12px;padding:6px 8px;border-radius:7px;background:var(--surface-2)}
 .gdesc b{font-family:var(--f-mono)}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -231,8 +234,15 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
     <details class="panel" open>
       <summary>敷き詰め方（群）</summary>
       <div class="pb">
-        <div class="seg" role="group" aria-label="種類"><button data-cat="finite">有限</button><button data-cat="frieze">帯状</button><button data-cat="wall">平面</button></div>
+        <div class="seg" role="group" aria-label="作り方"><button data-mode="incl">群の内包から作る</button><button data-mode="free">f を自分で選ぶ</button></div>
+        <div class="seg" id="catSeg" role="group" aria-label="種類"><button data-cat="finite">有限</button><button data-cat="frieze">帯状</button><button data-cat="wall">平面</button></div>
+        <span class="desc" id="gHead"></span>
         <div class="glist" id="gList"></div>
+        <div id="inclBox" style="display:flex;flex-direction:column;gap:8px">
+          <span class="desc">敷詰方法 G（Γ の部分群）</span>
+          <div class="glist sublist" id="subList"></div>
+          <div class="gdesc"><b id="inclName"></b><br>描いた線は Γ で複製されます。グリフは G で敷き詰めたものとして読み、Γ にあって G にない変換が f になります。</div>
+        </div>
         <div class="row" id="nRow"><span class="desc">回転の数 n</span><div class="stepper"><button id="nMinus" aria-label="減らす">−</button><output id="nOut"></output><button id="nPlus" aria-label="増やす">＋</button></div></div>
         <div class="gdesc" id="gDesc"></div>
         <div class="nums" id="latFields">
@@ -251,6 +261,7 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
       <summary>f（写す等長変換）</summary>
       <div class="pb">
         <div class="fgrid" id="fGrid"></div>
+        <div class="flist" id="fList"></div>
         <div class="verdict" id="verdict"></div>
         <p class="desc">「f で写す」側には、敷き詰めた模様を f で写したものが出ます。そこに B のガイドを重ねて、B の敷き詰めとして読めるかを確かめます。</p>
       </div>
@@ -267,6 +278,7 @@ textarea{width:100%;height:70px;font-family:var(--f-mono);font-size:11px;resize:
         <div class="row" style="flex-wrap:nowrap"><span class="desc" style="flex:none;color:#2B7BD6;font-weight:700">B</span><input type="text" class="gtext" data-bind="gB.text" placeholder="グリフB（同一型なら A と同じ）" aria-label="グリフBのガイド"><label class="chk" style="flex:none"><input type="checkbox" data-bind="gB.show">表示</label></div>
         <div class="field"><label for="gBs">大きさ</label><input type="range" id="gBs" min="10" max="800" step="1" data-bind="gB.size"><output data-out="gB.size"></output></div>
         <div class="nums"><label>横位置<input type="number" step="any" data-bind="gB.x"></label><label>縦位置<input type="number" step="any" data-bind="gB.y"></label></div>
+        <label class="chk" id="autoBRow"><input type="checkbox" data-bind="incl.autoB">B のガイドを、A を f で写した位置に自動で置く</label>
         <label class="chk"><input type="checkbox" data-bind="gB.all">f で写した敷き詰め方で並べる</label>
         <select data-bind="font" aria-label="ガイドの書体" id="fontSel"></select>
         <div class="field"><label for="gAl">濃さ</label><input type="range" id="gAl" min="0.05" max="1" step="0.05" data-bind="galpha"><output data-out="galpha"></output></div>
@@ -438,6 +450,87 @@ function nearest(G,p,gc){
 function pointGroup(G){const seen=[];for(const m of cosets(G)){const L=[m[0],m[1],m[2],m[3]].map(v=>Math.round(v*1e6)/1e6);if(!seen.some(s=>s.every((v,k)=>Math.abs(v-L[k])<1e-4)))seen.push(L);}return seen;}
 
 
+/* ---------- 群の内包（同一型づくり） ---------- */
+const eqMod=(a,b)=>{for(let k=0;k<4;k++)if(Math.abs(a[k]-b[k])>1e-6)return false;const dx=a[4]-b[4],dy=a[5]-b[5];return Math.abs(dx-Math.round(dx))<1e-6&&Math.abs(dy-Math.round(dy))<1e-6;};
+const eqEx=(a,b)=>a.every((v,k)=>Math.abs(v-b[k])<1e-6);
+const isLinI=w=>Math.abs(w[0]-1)<1e-6&&Math.abs(w[1])<1e-6&&Math.abs(w[2])<1e-6&&Math.abs(w[3]-1)<1e-6;
+const REPLAT={obl:{a:1,b:.81,gamma:77},rect:{a:1,b:.73,gamma:90},crect:{a:1,b:.73,gamma:90},sq:{a:1,b:1,gamma:90},hex:{a:1,b:1,gamma:120}};
+function repBasis(name){const L=REPLAT[GROUPS[name].lat];return basis({name,cat:'wall',a:L.a,b:L.b,gamma:L.gamma,theta:0,ox:0,oy:0});}
+// 操作の部分集合から、文様群の名前を判定する
+function classify(name,set){
+  const O=GROUPS[name].ops,B=repBasis(name),Bi=inv(B),W=set.map(i=>mul(B,mul(O[i],Bi)));
+  const e1=[B[0],B[1]],e2=[B[2],B[3]],pure=W.filter(isLinI).map(w=>[w[4],w[5]]);
+  const latT=[];for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++)for(const p of pure)latT.push([m*e1[0]+n*e2[0]+p[0],m*e1[1]+n*e2[1]+p[1]]);
+  const det=w=>w[0]*w[3]-w[1]*w[2];
+  let nRot=1;for(const w of W)if(det(w)>0){const a=Math.abs(Math.atan2(w[1],w[0]));if(a>1e-6)nRot=Math.max(nRot,Math.round(2*Math.PI/a));}
+  const refl=W.filter(w=>det(w)<0);
+  if(!refl.length)return{1:'p1',2:'p2',3:'p3',4:'p4',6:'p6'}[nRot];
+  // 並進の格子（中心格子なら中心の並進も含む）に入っているか
+  const inLat=v=>pure.some(p=>{const q=ap([Bi[0],Bi[1],Bi[2],Bi[3],0,0],v[0]-p[0],v[1]-p[1]);return Math.abs(q[0]-Math.round(q[0]))<1e-6&&Math.abs(q[1]-Math.round(q[1]))<1e-6;});
+  // 各要素の「すべり」gv=(t+Lt)/2 が 0 なら鏡映、格子に入らなければ本来の映進
+  const dirs=new Map();
+  for(const w of refl){const k=[w[0],w[1],w[2],w[3]].map(v=>Math.round(v*1e5)).join(',');const d=dirs.get(k)||{m:false,g:false};
+    for(const T of latT){const tx=w[4]+T[0],ty=w[5]+T[1],gv=[((w[0]+1)*tx+w[2]*ty)/2,(w[1]*tx+(w[3]+1)*ty)/2];
+      if(Math.hypot(...gv)<1e-6)d.m=true;else if(!inLat(gv))d.g=true;}
+    dirs.set(k,d);}
+  const ds=[...dirs.values()],mD=ds.filter(d=>d.m).length,gD=ds.filter(d=>d.g).length;
+  if(nRot===1)return mD===0?'pg':gD===0?'pm':'cm';
+  if(nRot===2)return mD===0?'pgg':gD===0?'pmm':(mD===2&&gD===2)?'cmm':'pmg';
+  if(nRot===4)return mD===4?'p4m':'p4g';
+  if(nRot===6)return'p6m';
+  // 3回：鏡映軸が最短の格子ベクトルと平行なら p31m
+  const w=refl[0];let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];
+  const vs=[e1,e2,[e1[0]+e2[0],e1[1]+e2[1]],[e1[0]-e2[0],e1[1]-e2[1]]],mn=Math.min(...vs.map(v=>Math.hypot(...v)));
+  const par=vs.some(v=>Math.abs(Math.hypot(...v)-mn)<1e-6&&Math.abs(v[0]*d[1]-v[1]*d[0])<1e-6*Math.hypot(...d));
+  return par?'p31m':'p3m1';
+}
+const SUBMEMO={};
+function subgroups(name){
+  if(SUBMEMO[name])return SUBMEMO[name];
+  const O=GROUPS[name].ops,n=O.length,prod=O.map(a=>O.map(b=>{const p=mul(a,b);return O.findIndex(c=>eqMod(p,c));}));
+  const out=[];
+  for(let mask=0;mask<(1<<(n-1));mask++){const set=[0];for(let k=1;k<n;k++)if(mask&(1<<(k-1)))set.push(k);
+    if(set.length===n)continue;let ok=true;for(const a of set){for(const b of set)if(!set.includes(prod[a][b])){ok=false;break;}if(!ok)break;}
+    if(ok)out.push({set,name:classify(name,set),index:n/set.length});}
+  // 同じ名前が複数あるときは番号を付ける
+  const cnt={};out.forEach(s=>cnt[s.name]=(cnt[s.name]||0)+1);const seen={};
+  out.forEach(s=>{if(cnt[s.name]>1){seen[s.name]=(seen[s.name]||0)+1;s.label=`${s.name}-${seen[s.name]}`;}else s.label=s.name;});
+  out.sort((a,b)=>b.set.length-a.set.length||a.label.localeCompare(b.label));
+  return SUBMEMO[name]=out;
+}
+// Γ の操作 i が、G の右剰余類のどれに属すか（色分け用）
+function cosetClasses(name,set){const O=GROUPS[name].ops,cls=[];
+  O.forEach((o,i)=>{let c=i;for(let j=0;j<i;j++){const q=mul(o,invF(O[j]));if(set.some(s=>eqMod(q,O[s]))){c=cls[j];break;}}cls[i]=c;});
+  const ids=[...new Set(cls)];return cls.map(c=>ids.indexOf(c));}
+function invF(m){return inv(m);}
+// f の候補：Γ に含まれ G に含まれない変換を、G による共役で同じものを除いて並べる
+function fCands(name,set){
+  const O=GROUPS[name].ops,Gels=[];for(const s of set)for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++){const g=O[s].slice();g[4]+=m;g[5]+=n;Gels.push(g);}
+  const cands=[];
+  O.forEach((o,i)=>{if(set.includes(i))return;
+    for(const tx of[0,1])for(const ty of[0,1]){const e=o.slice();e[4]+=tx;e[5]+=ty;
+      if(!cands.some(c=>Gels.some(g=>eqEx(mul(g,mul(c.e,inv(g))),e))))cands.push({e,i});}});
+  const seen=new Set();
+  return cands.map(c=>({...c,...describeF(name,c.e)})).filter(c=>{if(seen.has(c.label))return false;seen.add(c.label);return true;}).sort((a,b)=>a.rank-b.rank||a.label.localeCompare(b.label));
+}
+const FRAC=v=>{const t=((v%1)+1)%1;for(const[x,c]of[[0,'0'],[1/2,'½'],[1/3,'⅓'],[2/3,'⅔'],[1/4,'¼'],[3/4,'¾'],[1/6,'⅙'],[5/6,'⅚']])if(Math.abs(t-x)<1e-6||Math.abs(t-1-x)<1e-6)return c;return String(Math.round(t*100)/100);};
+function describeF(name,e){
+  const L=[e[0],e[1],e[2],e[3]],t=[e[4],e[5]],det=L[0]*L[3]-L[1]*L[2];
+  const B=repBasis(name),w=mul(B,mul(e,inv(B)));
+  if(det>0){if(isLinI(e))return{kind:'trans',rank:9,label:`並進（${FRAC(t[0])}, ${FRAC(t[1])}）`};
+    const a=Math.atan2(w[1],w[0]),deg=Math.round(((a*180/Math.PI)%360+360)%360),n=Math.round(360/Math.min(deg,360-deg));
+    // 中心 c：(I-L)c = t
+    const A=[1-L[0],-L[1],-L[2],1-L[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*t[0]-A[2]*t[1])/dt,cy=(-A[1]*t[0]+A[0]*t[1])/dt;
+    return{kind:'rot',n,rank:10-n,label:`${deg}°回転・中心（${FRAC(cx)}, ${FRAC(cy)}）`};}
+  // 鏡映か映進か
+  const Lt=[L[0]*t[0]+L[2]*t[1],L[1]*t[0]+L[3]*t[1]],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],p=[(t[0]-Lt[0])/2,(t[1]-Lt[1])/2];
+  const gw=[B[0]*g[0]+B[2]*g[1],B[1]*g[0]+B[3]*g[1]],isM=Math.hypot(...gw)<1e-6||(Math.abs(g[0]-Math.round(g[0]))<1e-6&&Math.abs(g[1]-Math.round(g[1]))<1e-6);
+  let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];let ang=((Math.atan2(d[1],d[0])*180/Math.PI)%180+180)%180;
+  const dir=Math.abs(ang-90)<1?'│':Math.abs(ang)<1||Math.abs(ang-180)<1?'─':Math.abs(ang-135)<1?'／':Math.abs(ang-45)<1?'＼':`${Math.round(ang)}°`;
+  const pt=[p[0]/2,p[1]/2];
+  return{kind:isM?'mirror':'glide',rank:isM?7:8,label:`${isM?'鏡映':'映進'}・${dir}軸（${FRAC(pt[0])}, ${FRAC(pt[1])} を通る）`};
+}
+
 const CATS={finite:['C','D'],frieze:['p111','p1a1','pm11','p1m1','p112','pma2','pmm2'],wall:['p1','p2','pm','pg','cm','pmm','pmg','pgg','cmm','p4','p4m','p4g','p3','p3m1','p31m','p6','p6m']};
 const FINDESC={C:'巡回群 Cn：n 回の回転',D:'二面体群 Dn：n 回の回転と鏡映'};
 const FOPTS=[
@@ -452,6 +545,7 @@ const FOPTS=[
 ];
 const S={
   group:{cat:'frieze',name:'p111',n:4,a:240,b:200,gamma:75,theta:0,ox:0,oy:0},last:{finite:'C',frieze:'p111',wall:'p1'},
+  mode:'incl',incl:{gamma:'p2',sub:'p1',fi:0,autoB:true},
   f:'r180',view:'both',look:'split',grid:true,snap:true,hiCopy:true,
   tool:'pen',penSize:18,eraseSize:40,pressure:true,penOnly:false,
   layers:[],cur:0,sidNext:1,
@@ -468,7 +562,14 @@ const V={z:1,ox:0,oy:0};
 const cv=$('#cv'),ctx=cv.getContext('2d'),board=$('#board');
 const G=()=>S.group;
 const fLin=()=>FOPTS.find(o=>o[0]===S.f)[2];
-const Fm=()=>{const L=fLin();return about([L[0],L[1],L[2],L[3],0,0],S.group.ox,S.group.oy);};
+const inclOn=()=>S.mode==='incl';
+let IIK='',II=null;
+function inclInfo(){const k=S.incl.gamma+'|'+S.incl.sub+'|'+S.incl.fi;if(k===IIK&&II)return II;
+  const subs=subgroups(S.incl.gamma),sg=subs.find(x=>x.label===S.incl.sub)||subs.find(x=>x.name==='p1')||subs[0],fc=fCands(S.incl.gamma,sg.set),fi=Math.max(0,Math.min(S.incl.fi,fc.length-1));
+  IIK=k;return II={subs,sg,fc,f:fc[fi],fi,cls:cosetClasses(S.incl.gamma,sg.set)};}
+const Fm=()=>{if(inclOn()){const B=basis(G());return mul(B,mul(inclInfo().f.e,inv(B)));}const L=fLin();return about([L[0],L[1],L[2],L[3],0,0],S.group.ox,S.group.oy);};
+const fName=()=>inclOn()?inclInfo().f.label:FOPTS.find(o=>o[0]===S.f)[1];
+const colIdx=i=>inclOn()?inclInfo().cls[i]:i;
 
 /* ---------- strokes ---------- */
 const wOf=(st,p)=>st.pr?st.w*(.25+1.5*p):st.w;
@@ -554,25 +655,40 @@ function drawRegion(x,r,sc,opts){
   const gOn=opts.guides&&S.galpha>0,Fv=Fm(),Fi=inv(Fv),noF=mul([sc,0,0,sc,0,0],[V.z,0,0,V.z,r.x+V.ox,r.y+V.oy]);
   const guideList=()=>{const out=[];
     if(!fv&&S.gA.show&&S.gA.text){if(S.gA.all)for(const e of orb)out.push([mul(base,e.m),S.gA,S.colors.gA]);else out.push([base,S.gA,S.colors.gA]);}
-    if(fv&&S.gB.show&&S.gB.text){if(S.gB.all){const Rb=worldRect(r);for(const e of orbit(G(),Rb,ap(Fi,S.gB.x,S.gB.y),S.gB.size))out.push([mul(noF,mul(Fv,mul(e.m,Fi))),S.gB,S.colors.gB]);}else out.push([noF,S.gB,S.colors.gB]);}
+    const gB=(inclOn()&&S.incl.autoB)?(()=>{const q=ap(Fv,S.gA.x,S.gA.y);return{...S.gB,text:S.gB.text||S.gA.text,size:S.gA.size,x:q[0],y:q[1]};})():S.gB;
+    if(fv&&gB.show&&gB.text){if(gB.all){const Rb=worldRect(r);for(const e of orbit(G(),Rb,ap(Fi,gB.x,gB.y),gB.size))out.push([mul(noF,mul(Fv,mul(e.m,Fi))),gB,S.colors.gB]);}else out.push([noF,gB,S.colors.gB]);}
     return out;};
   const gls=gOn?guideList():[];
   if(gOn){x.globalAlpha=S.galpha*.35;for(const[M,g,c]of gls)guideDraw(x,M,g,c,'fill');x.globalAlpha=1;}
   const C=getCaches(V.z*sc);
   for(const l of S.layers){const m=C.get(l.id);if(!l.show||!m||m.empty)continue;
     if(!opts.ui&&l.style==='pencil')continue;
-    if(l.rep){for(const e of orb){const col=l.style==='pencil'?LC(l):(S.look==='mono'?S.colors.mono:PAL[e.i%PAL.length]);
+    if(l.rep){for(const e of orb){const col=l.style==='pencil'?LC(l):(S.look==='mono'?S.colors.mono:PAL[colIdx(e.i)%PAL.length]);
         x.setTransform(...mul(base,e.m));x.globalAlpha=l.alpha*(l.style==='ink'&&S.look==='split'?.92:1);x.drawImage(tinted(m,col),m.x,m.y,m.w,m.h);}}
     else{x.setTransform(...base);x.globalAlpha=l.alpha;x.drawImage(tinted(m,l.style==='pencil'?LC(l):S.colors.mono),m.x,m.y,m.w,m.h);}
   }
   x.globalAlpha=1;
   if(gOn){x.globalAlpha=Math.min(1,S.galpha*1.6);for(const[M,g,c]of gls){x.save();x.lineWidth=1.4/V.z/(Math.hypot(M[0],M[1])/sc/V.z||1);guideDraw(x,M,g,c,'stroke');x.restore();}x.globalAlpha=1;}
   if(opts.ui){
+    if(inclOn()&&!fv)drawFElem(x,base,R,unit);
     if(S.hiCopy&&act&&act.type==='draw'&&act.g){x.setTransform(...base);const c=ap(act.g,gl.c[0],gl.c[1]);x.strokeStyle=AXIS;x.lineWidth=2*unit;x.setLineDash([6*unit,5*unit]);x.beginPath();x.arc(c[0],c[1],gl.r,0,Math.PI*2);x.stroke();x.setLineDash([]);}
     // 領域の見出し
-    x.setTransform(sc,0,0,sc,0,0);x.font='600 12px "Zen Kaku Gothic New", sans-serif';const lab=fv?`f：${FOPTS.find(o=>o[0]===S.f)[1]}`:`敷詰：${G().cat==='finite'?G().name+G().n:G().name}`;
+    x.setTransform(sc,0,0,sc,0,0);x.font='600 12px "Zen Kaku Gothic New", sans-serif';const lab=fv?`f：${fName()}`:(inclOn()?`${inclInfo().sg.name}敷詰 ${S.incl.gamma}同一型`:`敷詰：${G().cat==='finite'?G().name+G().n:G().name}`);
     const tw=x.measureText(lab).width,ly=r.y+(r.y<1?(board.clientWidth<900?118:70):12);x.fillStyle='rgba(255,255,255,.85)';x.fillRect(r.x+r.w-tw-22,ly,tw+14,22);x.fillStyle=fv?S.colors.gB:'#1F5F8B';x.textBaseline='middle';x.fillText(lab,r.x+r.w-tw-15,ly+11);
   }
+  x.restore();
+}
+// f の対称要素（回転の中心・鏡映軸・映進軸）を描く
+function drawFElem(x,base,R,unit){
+  const w=Fm(),ii=inclInfo(),k=ii.f.kind;x.save();x.setTransform(...base);x.strokeStyle='#C8321F';x.fillStyle='#C8321F';x.lineWidth=2.4*unit;
+  const L=Math.hypot(R.x1-R.x0,R.y1-R.y0)*2;
+  if(k==='rot'){const A=[1-w[0],-w[1],-w[2],1-w[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*w[4]-A[2]*w[5])/dt,cy=(-A[1]*w[4]+A[0]*w[5])/dt,n=ii.f.n,r=11*unit;
+    x.beginPath();if(n===2){x.ellipse(cx,cy,r*1.25,r*.6,rad(G().theta),0,Math.PI*2);}else for(let i=0;i<n;i++){const t=-Math.PI/2+2*Math.PI*i/n;i?x.lineTo(cx+r*Math.cos(t),cy+r*Math.sin(t)):x.moveTo(cx+r*Math.cos(t),cy+r*Math.sin(t));}
+    x.closePath();x.globalAlpha=.85;x.fill();x.globalAlpha=1;x.strokeStyle='#fff';x.lineWidth=1.5*unit;x.stroke();}
+  else if(k==='mirror'||k==='glide'){let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];const dl=Math.hypot(...d);d=[d[0]/dl,d[1]/dl];
+    const t=[w[4],w[5]],Lt=[w[0]*t[0]+w[2]*t[1],w[1]*t[0]+w[3]*t[1]],gv=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],p=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4];
+    if(k==='glide')x.setLineDash([10*unit,7*unit]);x.beginPath();x.moveTo(p[0]-d[0]*L,p[1]-d[1]*L);x.lineTo(p[0]+d[0]*L,p[1]+d[1]*L);x.stroke();x.setLineDash([]);
+    if(k==='glide'){const e=[p[0]+gv[0],p[1]+gv[1]],an=Math.atan2(gv[1],gv[0]),h=12*unit;x.beginPath();x.moveTo(e[0],e[1]);x.lineTo(e[0]-h*Math.cos(an-.45),e[1]-h*Math.sin(an-.45));x.lineTo(e[0]-h*Math.cos(an+.45),e[1]-h*Math.sin(an+.45));x.closePath();x.fill();}}
   x.restore();
 }
 function handles(){
@@ -613,20 +729,33 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-set]');if(
 $('#fGrid').innerHTML=FOPTS.map(([k,l,,ic])=>`<button data-set="f" data-val="${k}" title="${l}"><svg viewBox="0 0 20 20" stroke="currentColor" fill="currentColor" stroke-width="1.5">${ic}</svg>${l.replace('鏡映','')}</button>`).join('');
 $('#fontSel').innerHTML=Object.entries(FONTS).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join('');
 document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{const c=b.dataset.cat;if(S.group.cat===c)return;S.last[S.group.cat]=S.group.name;S.group.cat=c;S.group.name=S.last[c]||CATS[c][0];syncUI();fit();save();});
-$('#gList').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;S.group.name=b.dataset.g;S.last[S.group.cat]=S.group.name;syncUI();draw();save();});
+$('#gList').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;
+  if(inclOn()){S.incl.gamma=b.dataset.g;S.incl.fi=0;S.group.name=b.dataset.g;S.group.cat='wall';}else{S.group.name=b.dataset.g;S.last[S.group.cat]=S.group.name;}dirty=true;syncUI();draw();save();});
+$('#subList').addEventListener('click',e=>{const b=e.target.closest('[data-sub]');if(!b)return;S.incl.sub=b.dataset.sub;S.incl.fi=0;syncUI();draw();save();});
+$('#fList').addEventListener('click',e=>{const b=e.target.closest('[data-fi]');if(!b)return;S.incl.fi=+b.dataset.fi;syncUI();draw();save();});
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;if(S.mode==='free'){S.group.cat='wall';S.group.name=S.incl.gamma;}syncUI();draw();save();});
 $('#nMinus').onclick=()=>{S.group.n=Math.max(2,S.group.n-1);syncUI();draw();save();};
 $('#nPlus').onclick=()=>{S.group.n=Math.min(24,S.group.n+1);syncUI();draw();save();};
 function verdict(){
+  if(inclOn()){const ii=inclInfo();return['ok',`グリフを ${ii.sg.name} で敷き詰めた模様は ${S.incl.gamma} の対称性を持つので、f（${ii.f.label}）で写しても重なります。${ii.sg.name}敷詰${S.incl.gamma}同一型です。`];}
   const L=fLin();if(S.f==='id')return['','比較のため、そのままの模様を並べています。'];
   const pg=pointGroup(G());const has=pg.some(q=>q.every((v,k)=>Math.abs(v-L[k])<1e-4));
   return has?['warn','この f は、敷き詰め方の対称性にすでに含まれています。写しても同じ模様になるので、自明です（対称性が増えていません）。']
             :['ok','この f は敷き詰め方の対称性に含まれていません。写した模様が B の敷き詰めとして読めれば成立します。'];
 }
 function syncUI(inputs=true){
+  if(inclOn()){S.group.cat='wall';S.group.name=S.incl.gamma;}
   const g=S.group;
   document.querySelectorAll('[data-set]').forEach(b=>b.setAttribute('aria-pressed',String(getP(b.dataset.set))===b.dataset.val));
   document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===g.cat));
-  $('#gList').innerHTML=CATS[g.cat].map(n=>`<button data-g="${n}" aria-pressed="${n===g.name}" title="${g.cat==='finite'?FINDESC[n]:GROUPS[n].desc}">${g.cat==='finite'?n+'n':n}</button>`).join('');
+  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
+  const inc=inclOn();$('#catSeg').style.display=inc?'none':'flex';$('#inclBox').style.display=inc?'flex':'none';$('#fGrid').style.display=inc?'none':'grid';$('#fList').style.display=inc?'flex':'none';$('#autoBRow').style.display=inc?'flex':'none';
+  $('#gHead').textContent=inc?'最終的な文様 Γ':'敷き詰め方';
+  $('#gList').innerHTML=(inc?CATS.wall.filter(n=>n!=='p1'):CATS[g.cat]).map(n=>`<button data-g="${n}" aria-pressed="${n===g.name}" title="${g.cat==='finite'?FINDESC[n]:GROUPS[n].desc}">${g.cat==='finite'?n+'n':n}</button>`).join('');
+  if(inc){const ii=inclInfo();S.incl.sub=ii.sg.label;S.incl.fi=ii.fi;
+    $('#subList').innerHTML=ii.subs.map(x=>`<button data-sub="${x.label}" aria-pressed="${x.label===ii.sg.label}" title="指数 ${x.index}">${x.label}<small>×${x.index}</small></button>`).join('');
+    $('#fList').innerHTML=ii.fc.map((f,i)=>`<button data-fi="${i}" aria-pressed="${i===ii.fi}">${f.label}</button>`).join('');
+    $('#inclName').textContent=`${ii.sg.name}敷詰${S.incl.gamma}同一型`;}
   $('#nRow').style.display=g.cat==='finite'?'flex':'none';$('#nOut').textContent=g.n;
   const gg=GROUPS[g.name];
   $('#gDesc').innerHTML=g.cat==='finite'?`<b>${g.name}${g.n}</b>　${FINDESC[g.name]}（n=${g.n}）`:`<b>${g.name}</b>　${gg.desc}${g.cat==='wall'?`・${LATNAME[gg.lat]}格子`:'・帯状'}`;
@@ -636,7 +765,7 @@ function syncUI(inputs=true){
   $('#fG').style.display=lat==='obl'?'flex':'none';
   $('#fT').firstChild.textContent=g.cat==='finite'?'鏡映軸の向き（°）':'向き（°）';
   const[vc,vt]=verdict();const vd=$('#verdict');vd.className='verdict '+vc;vd.textContent=vt;
-  const st=$('#status');st.className='status '+vc;st.textContent=(g.cat==='finite'?g.name+g.n:g.name)+'　×　f：'+FOPTS.find(o=>o[0]===S.f)[1]+(vc==='warn'?'（自明）':'');
+  const st=$('#status');st.className='status '+vc;st.textContent=inclOn()?`${inclInfo().sg.name}敷詰${S.incl.gamma}同一型　f：${inclInfo().f.label}`:(g.cat==='finite'?g.name+g.n:g.name)+'　×　f：'+FOPTS.find(o=>o[0]===S.f)[1]+(vc==='warn'?'（自明）':'');
   const L=curL();$('#layerName').textContent=L?L.name:'';
   const sk=sizeKey();$('#bLabel').textContent=sk==='eraseSize'?'消しゴム':'ペン';$('#bOut').textContent=S[sk];if(document.activeElement!==$('#brush'))$('#brush').value=S[sk];
   renderLayers();if(inputs)syncInputs();
@@ -792,7 +921,7 @@ $('#exShare').onclick=async()=>{if(!exBlob)return;const f=new File([exBlob],`${(
   const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();};
 
 /* ---------- storage ---------- */
-const KEYS=['group','last','f','view','look','grid','snap','hiCopy','tool','penSize','eraseSize','pressure','penOnly','layers','cur','sidNext','gA','gB','font','galpha','colors','ex','name'];
+const KEYS=['mode','incl','group','last','f','view','look','grid','snap','hiCopy','tool','penSize','eraseSize','pressure','penOnly','layers','cur','sidNext','gA','gB','font','galpha','colors','ex','name'];
 let DB=null;
 function idb(){return new Promise(res=>{try{const r=indexedDB.open('shiki-kobo',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('kv');d.createObjectStore('works',{keyPath:'id'});};r.onsuccess=()=>{DB=r.result;res(true);};r.onerror=()=>res(false);}catch(_){res(false);}});}
 function kvGet(){return new Promise(res=>{if(!DB){try{res(JSON.parse(localStorage.getItem('shiki-kobo')||'null'));}catch(_){res(null);}return;}try{const r=DB.transaction('kv').objectStore('kv').get('current');r.onsuccess=()=>res(r.result||null);r.onerror=()=>res(null);}catch(_){res(null);}});}
