@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#2B3A8C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="アンビグラム工房">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+html{box-sizing:border-box;-webkit-text-size-adjust:100%}
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font-size:14px;font-family:system-ui,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+a.btn{text-decoration:none;color:inherit}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+.ibtn{width:42px;height:38px;padding:0!important}
+.ibtn svg{width:21px;height:21px}
+</style>
+<title>敷詰アンビ入門</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=IBM+Plex+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 説明する人のための教壇。左に短い要点、右に大きな作図面。下に話す内容のメモを開ける。 */
+:root{
+  --bg:#E9ECF2; --surface:#FFFFFF; --fg:#14151B; --muted:#5B6072; --line:#D2D6E1; --accent:#2B3A8C;
+  --a:#2B5AC8; --b:#DE5F19; --paper:#F7F8F4; --ink:#14151B; --ok:#1E8A55; --ng:#C23B2A;
+  --f-display:"Dela Gothic One","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#101117;--surface:#191B23;--fg:#E7E8EF;--muted:#9A9FB3;--line:#2D303C;--accent:#8F9DF3;--ok:#4CC38A;--ng:#F07A68;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101117;--surface:#191B23;--fg:#E7E8EF;--muted:#9A9FB3;--line:#2D303C;--accent:#8F9DF3;--ok:#4CC38A;--ng:#F07A68;color-scheme:dark}
+html,body{height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;overflow:hidden;-webkit-user-select:none;user-select:none}
+header{display:flex;align-items:center;gap:12px;padding-block:10px 8px;flex:none;flex-wrap:wrap}
+header .brand{font-family:var(--f-display);font-size:16px;letter-spacing:.05em;white-space:nowrap}
+.prog{display:flex;gap:4px;flex:1;min-width:160px}
+.prog button{flex:1;height:8px;border:0;border-radius:4px;background:var(--line);padding:0;cursor:pointer}
+.prog button[aria-current="true"]{background:var(--accent)}
+.prog button.done{background:color-mix(in srgb,var(--accent) 40%,var(--line))}
+.actions{display:flex;gap:6px}.actions:empty{display:none}
+.navs{display:flex;gap:6px;align-items:center}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+button{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 12px;cursor:pointer;min-height:36px;font-size:14px}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,.prog button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.icon{width:40px;padding:0;display:grid;place-items:center}
+.btn svg{width:18px;height:18px}
+main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:20px;padding-bottom:12px}
+.text{display:flex;flex-direction:column;gap:14px;min-width:0;overflow:auto;padding-right:4px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(22px,2.5vw,34px);line-height:1.25;letter-spacing:.03em;text-wrap:balance}
+.lead{margin:0;font-size:clamp(15px,1.5vw,19px);line-height:1.75;max-width:30em}
+.lead b{color:var(--accent)}
+.formula{font-family:var(--f-mono);font-size:clamp(14px,1.4vw,18px);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;max-width:30em}
+.formula .ca{color:var(--a);font-weight:500}.formula .cb{color:var(--b);font-weight:500}
+.key{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.key span.sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.demo{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.canvasWrap{flex:1;min-height:0;position:relative;border-radius:14px;overflow:hidden;background:var(--paper);border:1px solid var(--line)}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.cap{position:absolute;left:12px;bottom:10px;font-family:var(--f-mono);font-size:13px;color:#4A4F60;background:rgba(247,248,244,.88);padding:3px 8px;border-radius:6px;pointer-events:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:none}
+.controls .sep{width:1px;height:26px;background:var(--line)}
+.controls label{display:flex;align-items:center;gap:8px;font-size:14px}
+.controls input[type=range]{width:140px}
+.verdict{font-weight:700}
+.verdict.ok{color:var(--ok)}.verdict.ng{color:var(--ng)}
+.notes{flex:none;border-top:1px solid var(--line);padding-block:10px 12px;max-height:30vh;overflow:auto;font-size:15px}
+.notes h2{margin:0 0 4px;font-size:12px;font-family:var(--f-mono);letter-spacing:.08em;color:var(--muted);font-weight:500}
+.notes ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px;max-width:70em}
+.ex{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none;max-width:32em}
+.ex li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.ex li b{font-family:var(--f-mono);color:var(--accent);margin-right:8px}
+a.go{color:var(--accent);font-weight:700}
+@media (max-width:820px),(orientation:portrait) and (max-width:1100px){
+  body{overflow:auto}
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto}
+  .text{overflow:visible}
+  .canvasWrap{flex:none;height:min(62vh,560px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">敷詰アンビ入門</div>
+  <nav class="prog" id="prog" aria-label="スライド"></nav>
+  <div class="actions">
+    <a class="btn ibtn" href="./" title="一覧に戻る" aria-label="一覧に戻る"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 9.5L10 3.5l7 6"/><path d="M5 8.5V16.5h10V8.5"/></svg></a></div>
+  <div class="navs">
+    <button class="btn icon" id="prev" title="前へ（←）" aria-label="前へ"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4L6.5 10l6 6"/></svg></button>
+    <span class="count" id="count">1 / 13</span>
+    <button class="btn icon" id="next" title="次へ（→）" aria-label="次へ"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4l6 6-6 6"/></svg></button>
+    <button class="btn" id="noteBtn" aria-pressed="false" title="話す内容のメモ（N）">メモ</button>
+  </div>
+</header>
+<main>
+  <section class="text" id="text"></section>
+  <section class="demo">
+    <div class="canvasWrap"><canvas id="cv"></canvas><div class="cap" id="cap" hidden></div></div>
+    <div class="controls" id="controls"></div>
+  </section>
+</main>
+<aside class="notes" id="notes" hidden><h2>話す内容</h2><ul id="noteList"></ul></aside>
+<script>
+const mul=(A,B)=>[A[0]*B[0]+A[2]*B[1],A[1]*B[0]+A[3]*B[1],A[0]*B[2]+A[2]*B[3],A[1]*B[2]+A[3]*B[3],A[0]*B[4]+A[2]*B[5]+A[4],A[1]*B[4]+A[3]*B[5]+A[5]];
+function inv(m){const[a,b,c,d,e,f]=m,t=a*d-b*c;return[d/t,-b/t,-c/t,a/t,(c*f-d*e)/t,(b*e-a*f)/t];}
+const ap=(m,x,y)=>[m[0]*x+m[2]*y+m[4],m[1]*x+m[3]*y+m[5]];
+const rad=d=>d*Math.PI/180;
+/* ---------- 群（敷き詰め方） ---------- */
+// 分数座標の操作を "x,y" 形式の文字列で書く（国際結晶学表の標準の配置）
+function opParse(str){
+  const parts=str.split(',').map(s=>s.replace(/\s/g,''));
+  const lin=e=>{let a=0,b=0,c=0;const toks=e.replace(/-/g,'+-').split('+').filter(Boolean);
+    for(const t of toks){if(t.endsWith('x'))a+=t==='x'?1:t==='-x'?-1:parseFloat(t);
+      else if(t.endsWith('y'))b+=t==='y'?1:t==='-y'?-1:parseFloat(t);
+      else{const[n,d]=t.split('/');c+=d?parseFloat(n)/parseFloat(d):parseFloat(n);}}return[a,b,c];};
+  const X=lin(parts[0]),Y=lin(parts[1]);
+  // [a,b,c,d,e,f] : x' = a x + c y + e,  y' = b x + d y + f
+  return[X[0],Y[0],X[1],Y[1],X[2],Y[2]];
+}
+const ops=(...l)=>l.map(opParse);
+const withC=(l)=>[...l,...l.map(o=>[o[0],o[1],o[2],o[3],o[4]+.5,o[5]+.5])];
+const P3=['x,y','-y,x-y','-x+y,-x'];
+const GROUPS={
+  // 帯状（フリーズ群）：x 方向に周期 a、y はそのままの長さ
+  p111:{kind:'frieze',ops:ops('x,y'),desc:'並進だけ'},
+  p1a1:{kind:'frieze',ops:ops('x,y','x+1/2,-y'),desc:'映進'},
+  pm11:{kind:'frieze',ops:ops('x,y','-x,y'),desc:'│軸の鏡映'},
+  p1m1:{kind:'frieze',ops:ops('x,y','x,-y'),desc:'─軸の鏡映'},
+  p112:{kind:'frieze',ops:ops('x,y','-x,-y'),desc:'180°回転'},
+  pma2:{kind:'frieze',ops:ops('x,y','-x,-y','-x+1/2,y','x+1/2,-y'),desc:'│軸の鏡映＋映進'},
+  pmm2:{kind:'frieze',ops:ops('x,y','-x,-y','-x,y','x,-y'),desc:'│軸と─軸の鏡映'},
+  // 平面（文様群）
+  p1:{kind:'wall',lat:'obl',ops:ops('x,y'),desc:'並進だけ'},
+  p2:{kind:'wall',lat:'obl',ops:ops('x,y','-x,-y'),desc:'180°回転'},
+  pm:{kind:'wall',lat:'rect',ops:ops('x,y','-x,y'),desc:'鏡映'},
+  pg:{kind:'wall',lat:'rect',ops:ops('x,y','-x,y+1/2'),desc:'映進'},
+  cm:{kind:'wall',lat:'crect',ops:withC(ops('x,y','-x,y')),desc:'鏡映（中心格子）'},
+  pmm:{kind:'wall',lat:'rect',ops:ops('x,y','-x,-y','-x,y','x,-y'),desc:'直交する鏡映'},
+  pmg:{kind:'wall',lat:'rect',ops:ops('x,y','-x,-y','-x+1/2,y','x+1/2,-y'),desc:'鏡映＋映進'},
+  pgg:{kind:'wall',lat:'rect',ops:ops('x,y','-x,-y','-x+1/2,y+1/2','x+1/2,-y+1/2'),desc:'直交する映進'},
+  cmm:{kind:'wall',lat:'crect',ops:withC(ops('x,y','-x,-y','-x,y','x,-y')),desc:'直交する鏡映（中心格子）'},
+  p4:{kind:'wall',lat:'sq',ops:ops('x,y','-x,-y','-y,x','y,-x'),desc:'90°回転'},
+  p4m:{kind:'wall',lat:'sq',ops:ops('x,y','-x,-y','-y,x','y,-x','-x,y','x,-y','y,x','-y,-x'),desc:'90°回転＋鏡映'},
+  p4g:{kind:'wall',lat:'sq',ops:ops('x,y','-x,-y','-y,x','y,-x','-x+1/2,y+1/2','x+1/2,-y+1/2','y+1/2,x+1/2','-y+1/2,-x+1/2'),desc:'90°回転＋映進'},
+  p3:{kind:'wall',lat:'hex',ops:ops(...P3),desc:'120°回転'},
+  p3m1:{kind:'wall',lat:'hex',ops:ops(...P3,'-y,-x','-x+y,y','x,x-y'),desc:'120°回転＋鏡映'},
+  p31m:{kind:'wall',lat:'hex',ops:ops(...P3,'y,x','x-y,-y','-x,-x+y'),desc:'120°回転＋鏡映（別の向き）'},
+  p6:{kind:'wall',lat:'hex',ops:ops(...P3,'-x,-y','y,-x+y','x-y,x'),desc:'60°回転'},
+  p6m:{kind:'wall',lat:'hex',ops:ops(...P3,'-x,-y','y,-x+y','x-y,x','-y,-x','-x+y,y','x,x-y','y,x','x-y,-y','-x,-x+y'),desc:'60°回転＋鏡映'},
+};
+const LATNAME={obl:'斜方',rect:'長方',crect:'中心長方',sq:'正方',hex:'六方'};
+// 格子の基底（分数座標→世界座標）
+function basis(G){
+  const g=GROUPS[G.name],th=G.theta*Math.PI/180,ct=Math.cos(th),st=Math.sin(th);
+  let e1,e2;
+  if(G.cat==='finite')return[1,0,0,1,G.ox,G.oy];
+  if(g.kind==='frieze'){e1=[G.a,0];e2=[0,1];}
+  else{const lat=g.lat;let a=G.a,b=G.b,ga=G.gamma;
+    if(lat==='sq'){b=a;ga=90;}else if(lat==='hex'){b=a;ga=120;}else if(lat!=='obl')ga=90;
+    const gr=ga*Math.PI/180;e1=[a,0];e2=[b*Math.cos(gr),b*Math.sin(gr)];}
+  const R=v=>[v[0]*ct-v[1]*st,v[0]*st+v[1]*ct];e1=R(e1);e2=R(e2);
+  return[e1[0],e1[1],e2[0],e2[1],G.ox,G.oy];
+}
+// 剰余類の代表（世界座標の変換）
+function cosets(G){
+  if(G.cat==='finite'){const n=G.n,out=[],th=G.theta*Math.PI/180;
+    for(let k=0;k<n;k++){const t=2*Math.PI*k/n,c=Math.cos(t),s=Math.sin(t);out.push(about([c,s,-s,c,0,0],G.ox,G.oy));}
+    if(G.name==='D')for(let k=0;k<n;k++){const t=2*(th+Math.PI*k/n),c=Math.cos(t),s=Math.sin(t);out.push(about([c,s,s,-c,0,0],G.ox,G.oy));}
+    return out;}
+  const B=basis(G),Bi=inv(B);return GROUPS[G.name].ops.map(o=>mul(B,mul(o,Bi)));
+}
+const about=(m,cx,cy)=>[m[0],m[1],m[2],m[3],cx-m[0]*cx-m[2]*cy+m[4],cy-m[1]*cx-m[3]*cy+m[5]];
+// 世界の矩形 R を覆う群の要素を列挙（gc: グリフの中心、rg: グリフの半径）
+function orbit(G,R,gc,rg,cap=2500){
+  const cs=cosets(G);
+  if(G.cat==='finite')return cs.map((m,i)=>({m,i}));
+  const B=basis(G),Bi=inv(B),e1=[B[0],B[1]],e2=[B[2],B[3]],fr=G.cat==='frieze';
+  const out=[];
+  for(let i=0;i<cs.length;i++){
+    const c=ap(cs[i],gc[0],gc[1]);
+    let m0=1e9,m1=-1e9,n0=1e9,n1=-1e9;
+    for(const[x,y]of[[R.x0-rg,R.y0-rg],[R.x1+rg,R.y0-rg],[R.x0-rg,R.y1+rg],[R.x1+rg,R.y1+rg]]){
+      const dx=x-c[0],dy=y-c[1],u=Bi[0]*dx+Bi[2]*dy,v=Bi[1]*dx+Bi[3]*dy;m0=Math.min(m0,u);m1=Math.max(m1,u);n0=Math.min(n0,v);n1=Math.max(n1,v);}
+    if(fr){n0=n1=0;}
+    m0=Math.floor(m0);m1=Math.ceil(m1);n0=Math.floor(n0);n1=Math.ceil(n1);
+    for(let m=m0;m<=m1;m++)for(let n=n0;n<=n1;n++){
+      const tx=m*e1[0]+n*e2[0],ty=m*e1[1]+n*e2[1],p=[c[0]+tx,c[1]+ty];
+      if(p[0]<R.x0-rg||p[0]>R.x1+rg||p[1]<R.y0-rg||p[1]>R.y1+rg)continue;
+      out.push({m:mul([1,0,0,1,tx,ty],cs[i]),i});if(out.length>=cap)return out;}
+  }
+  return out;
+}
+// 点 p にいちばん近いコピー（グリフの中心 gc が p に近いもの）
+function nearest(G,p,gc){
+  const cs=cosets(G);let best=null;
+  if(G.cat==='finite'){cs.forEach((m,i)=>{const c=ap(m,gc[0],gc[1]),d=Math.hypot(c[0]-p[0],c[1]-p[1]);if(!best||d<best.d)best={m,i,d};});return best;}
+  const B=basis(G),Bi=inv(B),e1=[B[0],B[1]],e2=[B[2],B[3]],fr=G.cat==='frieze';
+  cs.forEach((cm,i)=>{const c=ap(cm,gc[0],gc[1]),dx=p[0]-c[0],dy=p[1]-c[1];
+    const u=Bi[0]*dx+Bi[2]*dy,v=Bi[1]*dx+Bi[3]*dy;
+    for(const m of[Math.floor(u),Math.ceil(u)])for(const n of fr?[0]:[Math.floor(v),Math.ceil(v)]){
+      const tx=m*e1[0]+n*e2[0],ty=m*e1[1]+n*e2[1],d=Math.hypot(c[0]+tx-p[0],c[1]+ty-p[1]);
+      if(!best||d<best.d)best={m:mul([1,0,0,1,tx,ty],cm),i,d};}});
+  return best;
+}
+// 群の点群（線形部分）
+function pointGroup(G){const seen=[];for(const m of cosets(G)){const L=[m[0],m[1],m[2],m[3]].map(v=>Math.round(v*1e6)/1e6);if(!seen.some(s=>s.every((v,k)=>Math.abs(v-L[k])<1e-4)))seen.push(L);}return seen;}
+/* ---------- 群の内包（同一型づくり） ---------- */
+const eqMod=(a,b)=>{for(let k=0;k<4;k++)if(Math.abs(a[k]-b[k])>1e-6)return false;const dx=a[4]-b[4],dy=a[5]-b[5];return Math.abs(dx-Math.round(dx))<1e-6&&Math.abs(dy-Math.round(dy))<1e-6;};
+const eqEx=(a,b)=>a.every((v,k)=>Math.abs(v-b[k])<1e-6);
+const isLinI=w=>Math.abs(w[0]-1)<1e-6&&Math.abs(w[1])<1e-6&&Math.abs(w[2])<1e-6&&Math.abs(w[3]-1)<1e-6;
+const REPLAT={obl:{a:1,b:.81,gamma:77},rect:{a:1,b:.73,gamma:90},crect:{a:1,b:.73,gamma:90},sq:{a:1,b:1,gamma:90},hex:{a:1,b:1,gamma:120}};
+function repBasis(name){const L=REPLAT[GROUPS[name].lat];return basis({name,cat:'wall',a:L.a,b:L.b,gamma:L.gamma,theta:0,ox:0,oy:0});}
+// 操作の部分集合から、文様群の名前を判定する
+function classify(name,set){
+  const O=GROUPS[name].ops,B=repBasis(name),Bi=inv(B),W=set.map(i=>mul(B,mul(O[i],Bi)));
+  const e1=[B[0],B[1]],e2=[B[2],B[3]],pure=W.filter(isLinI).map(w=>[w[4],w[5]]);
+  const latT=[];for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++)for(const p of pure)latT.push([m*e1[0]+n*e2[0]+p[0],m*e1[1]+n*e2[1]+p[1]]);
+  const det=w=>w[0]*w[3]-w[1]*w[2];
+  let nRot=1;for(const w of W)if(det(w)>0){const a=Math.abs(Math.atan2(w[1],w[0]));if(a>1e-6)nRot=Math.max(nRot,Math.round(2*Math.PI/a));}
+  const refl=W.filter(w=>det(w)<0);
+  if(!refl.length)return{1:'p1',2:'p2',3:'p3',4:'p4',6:'p6'}[nRot];
+  // 並進の格子（中心格子なら中心の並進も含む）に入っているか
+  const inLat=v=>pure.some(p=>{const q=ap([Bi[0],Bi[1],Bi[2],Bi[3],0,0],v[0]-p[0],v[1]-p[1]);return Math.abs(q[0]-Math.round(q[0]))<1e-6&&Math.abs(q[1]-Math.round(q[1]))<1e-6;});
+  // 各要素の「すべり」gv=(t+Lt)/2 が 0 なら鏡映、格子に入らなければ本来の映進
+  const dirs=new Map();
+  for(const w of refl){const k=[w[0],w[1],w[2],w[3]].map(v=>Math.round(v*1e5)).join(',');const d=dirs.get(k)||{m:false,g:false};
+    for(const T of latT){const tx=w[4]+T[0],ty=w[5]+T[1],gv=[((w[0]+1)*tx+w[2]*ty)/2,(w[1]*tx+(w[3]+1)*ty)/2];
+      if(Math.hypot(...gv)<1e-6)d.m=true;else if(!inLat(gv))d.g=true;}
+    dirs.set(k,d);}
+  const ds=[...dirs.values()],mD=ds.filter(d=>d.m).length,gD=ds.filter(d=>d.g).length;
+  if(nRot===1)return mD===0?'pg':gD===0?'pm':'cm';
+  if(nRot===2)return mD===0?'pgg':gD===0?'pmm':(mD===2&&gD===2)?'cmm':'pmg';
+  if(nRot===4)return mD===4?'p4m':'p4g';
+  if(nRot===6)return'p6m';
+  // 3回：鏡映軸が最短の格子ベクトルと平行なら p31m
+  const w=refl[0];let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];
+  const vs=[e1,e2,[e1[0]+e2[0],e1[1]+e2[1]],[e1[0]-e2[0],e1[1]-e2[1]]],mn=Math.min(...vs.map(v=>Math.hypot(...v)));
+  const par=vs.some(v=>Math.abs(Math.hypot(...v)-mn)<1e-6&&Math.abs(v[0]*d[1]-v[1]*d[0])<1e-6*Math.hypot(...d));
+  return par?'p31m':'p3m1';
+}
+const SUBMEMO={};
+function subgroups(name){
+  if(SUBMEMO[name])return SUBMEMO[name];
+  const O=GROUPS[name].ops,n=O.length,prod=O.map(a=>O.map(b=>{const p=mul(a,b);return O.findIndex(c=>eqMod(p,c));}));
+  const out=[];
+  for(let mask=0;mask<(1<<(n-1));mask++){const set=[0];for(let k=1;k<n;k++)if(mask&(1<<(k-1)))set.push(k);
+    if(set.length===n)continue;let ok=true;for(const a of set){for(const b of set)if(!set.includes(prod[a][b])){ok=false;break;}if(!ok)break;}
+    if(ok)out.push({set,name:classify(name,set),index:n/set.length});}
+  // 同じ名前が複数あるときは番号を付ける
+  const cnt={};out.forEach(s=>cnt[s.name]=(cnt[s.name]||0)+1);const seen={};
+  out.forEach(s=>{if(cnt[s.name]>1){seen[s.name]=(seen[s.name]||0)+1;s.label=`${s.name}-${seen[s.name]}`;}else s.label=s.name;});
+  out.sort((a,b)=>b.set.length-a.set.length||a.label.localeCompare(b.label));
+  return SUBMEMO[name]=out;
+}
+// Γ の操作 i が、G の右剰余類のどれに属すか（色分け用）
+function cosetClasses(name,set){const O=GROUPS[name].ops,cls=[];
+  O.forEach((o,i)=>{let c=i;for(let j=0;j<i;j++){const q=mul(o,invF(O[j]));if(set.some(s=>eqMod(q,O[s]))){c=cls[j];break;}}cls[i]=c;});
+  const ids=[...new Set(cls)];return cls.map(c=>ids.indexOf(c));}
+function invF(m){return inv(m);}
+// f の候補：Γ に含まれ G に含まれない変換を、G による共役で同じものを除いて並べる
+function fCands(name,set){
+  const O=GROUPS[name].ops,Gels=[];for(const s of set)for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++){const g=O[s].slice();g[4]+=m;g[5]+=n;Gels.push(g);}
+  const cands=[];
+  O.forEach((o,i)=>{if(set.includes(i))return;
+    for(const tx of[0,1])for(const ty of[0,1]){const e=o.slice();e[4]+=tx;e[5]+=ty;
+      if(!cands.some(c=>Gels.some(g=>eqEx(mul(g,mul(c.e,inv(g))),e))))cands.push({e,i});}});
+  const seen=new Set();
+  return cands.map(c=>({...c,...describeF(name,c.e)})).filter(c=>{if(seen.has(c.label))return false;seen.add(c.label);return true;}).sort((a,b)=>a.rank-b.rank||a.label.localeCompare(b.label));
+}
+const FRAC=v=>{const t=((v%1)+1)%1;for(const[x,c]of[[0,'0'],[1/2,'½'],[1/3,'⅓'],[2/3,'⅔'],[1/4,'¼'],[3/4,'¾'],[1/6,'⅙'],[5/6,'⅚']])if(Math.abs(t-x)<1e-6||Math.abs(t-1-x)<1e-6)return c;return String(Math.round(t*100)/100);};
+function describeF(name,e){
+  const L=[e[0],e[1],e[2],e[3]],t=[e[4],e[5]],det=L[0]*L[3]-L[1]*L[2];
+  const B=repBasis(name),w=mul(B,mul(e,inv(B)));
+  if(det>0){if(isLinI(e))return{kind:'trans',rank:9,label:`並進（${FRAC(t[0])}, ${FRAC(t[1])}）`};
+    const a=Math.atan2(w[1],w[0]),deg=Math.round(((a*180/Math.PI)%360+360)%360),n=Math.round(360/Math.min(deg,360-deg));
+    // 中心 c：(I-L)c = t
+    const A=[1-L[0],-L[1],-L[2],1-L[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*t[0]-A[2]*t[1])/dt,cy=(-A[1]*t[0]+A[0]*t[1])/dt;
+    return{kind:'rot',n,rank:10-n,label:`${deg}°回転・中心（${FRAC(cx)}, ${FRAC(cy)}）`};}
+  // 鏡映か映進か
+  const Lt=[L[0]*t[0]+L[2]*t[1],L[1]*t[0]+L[3]*t[1]],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],p=[(t[0]-Lt[0])/2,(t[1]-Lt[1])/2];
+  const gw=[B[0]*g[0]+B[2]*g[1],B[1]*g[0]+B[3]*g[1]],isM=Math.hypot(...gw)<1e-6||(Math.abs(g[0]-Math.round(g[0]))<1e-6&&Math.abs(g[1]-Math.round(g[1]))<1e-6);
+  let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];let ang=((Math.atan2(d[1],d[0])*180/Math.PI)%180+180)%180;
+  const dir=Math.abs(ang-90)<1?'│':Math.abs(ang)<1||Math.abs(ang-180)<1?'─':Math.abs(ang-135)<1?'／':Math.abs(ang-45)<1?'＼':`${Math.round(ang)}°`;
+  const pt=[p[0]/2,p[1]/2];
+  return{kind:isM?'mirror':'glide',rank:isM?7:8,label:`${isM?'鏡映':'映進'}・${dir}軸（${FRAC(pt[0])}, ${FRAC(pt[1])} を通る）`};
+}
+/* ---------- 単位領域（基本領域） ---------- */
+// Γ の基本領域（等価な点を 2 つ以上含まない最小の領域）を、格子の分数座標で
+{const h=1/2,t=1/3,tt=2/3,q=1/4;
+var AUREG={p1:[[0,0],[1,0],[1,1],[0,1]],p2:[[0,0],[h,0],[h,1],[0,1]],pm:[[0,0],[h,0],[h,1],[0,1]],pg:[[0,0],[1,0],[1,h],[0,h]],
+ cm:[[0,0],[h,0],[h,h],[0,h]],pmm:[[0,0],[h,0],[h,h],[0,h]],pmg:[[0,0],[q,0],[q,1],[0,1]],pgg:[[0,0],[h,0],[h,h],[0,h]],cmm:[[0,0],[q,0],[q,h],[0,h]],
+ p4:[[0,0],[h,0],[h,h],[0,h]],p4m:[[0,0],[h,0],[h,h]],p4g:[[0,0],[h,0],[0,h]],
+ p3:[[0,0],[tt,t],[1,1],[t,tt]],p3m1:[[0,0],[tt,t],[t,tt]],p31m:[[0,0],[1,0],[tt,t]],p6:[[0,0],[1,0],[tt,t]],p6m:[[0,0],[h,0],[tt,t]]};}
+// G の基本領域：Γ の基本領域を、G の剰余類ごとに 1 枚ずつ、辺でつながるように集める
+const REGMEMO={};
+function unitRegions(name,set){const k=name+'|'+set.join(',');if(REGMEMO[k])return REGMEMO[k];
+  const O=GROUPS[name].ops,A=AUREG[name],cls=cosetClasses(name,set),key=p=>p.map(v=>Math.round(v*1e5)).join(',');
+  const cen=P=>[P.reduce((s,p)=>s+p[0],0)/P.length,P.reduce((s,p)=>s+p[1],0)/P.length];
+  const shares=(P,Q)=>{const s=new Set(Q.map(key));return P.filter(p=>s.has(key(p))).length>=2;};
+  const pieces=[A],done=new Set([cls[0]]),c0=cen(A),nC=Math.max(...cls)+1;
+  for(let guard=0;done.size<nC&&guard<nC*2;guard++){let best=null;
+    O.forEach((o,i)=>{if(done.has(cls[i]))return;for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++){
+      const P=A.map(p=>{const r=ap(o,p[0],p[1]);return[r[0]+m,r[1]+n];});if(!pieces.some(Q=>shares(P,Q)))continue;
+      const c=cen(P),d=Math.hypot(c[0]-c0[0],c[1]-c0[1]);if(!best||d<best.d-1e-9)best={P,d,c:cls[i]};}});
+    if(!best)break;pieces.push(best.P);done.add(best.c);}
+  return REGMEMO[k]={au:A,pieces};}
+
+
+/* ---------- 描画の土台 ---------- */
+const $=s=>document.querySelector(s);
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let CW=0,CH=0,DPR=1;
+function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);CW=r.width;CH=r.height;
+  const w=Math.round(CW*DPR),h=Math.round(CH*DPR);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}}
+// 世界座標：中心 (cx,cy)、短い辺に span 単位が入る
+const V={cx:0,cy:0,s:100};
+function setView(cx,cy,span){V.cx=cx;V.cy=cy;V.s=Math.min(CW,CH)/span;}
+function setStrip(){V.cx=0;V.cy=0;V.s=Math.min(CW/(FR_A*5.2),CH/2.8);}
+function viewRect(){return{x0:V.cx-CW/2/V.s,x1:V.cx+CW/2/V.s,y0:V.cy-CH/2/V.s,y1:V.cy+CH/2/V.s};}
+function world(){ctx.setTransform(DPR*V.s,0,0,DPR*V.s,DPR*(CW/2-V.s*V.cx),DPR*(CH/2-V.s*V.cy));}
+const PX=()=>1/V.s;
+function clear(){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#F7F8F4';ctx.fillRect(0,0,cv.width,cv.height);}
+const COL={a:'#2B5AC8',b:'#DE5F19',ink:'#14151B',grid:'rgba(20,21,27,.12)',ghost:'rgba(20,21,27,.16)',el:'#B0233F'};
+const PAL=['#2B5AC8','#DE5F19','#2E9A57','#8A3FB8','#C9A227','#0A8F9A','#D6336C','#6B4F2A','#3A0CA3','#E07A00','#5E548E','#2B9348'];
+const T=(x,y)=>[1,0,0,1,x,y];
+const R=(t,cx=0,cy=0)=>about([Math.cos(t),Math.sin(t),-Math.sin(t),Math.cos(t),0,0],cx,cy);
+const S_=(s)=>[s,0,0,s,0,0];
+// 鏡映：点 (px,py) を通り、角度 t の向きの直線
+const M=(t,px,py)=>about([Math.cos(2*t),Math.sin(2*t),Math.sin(2*t),-Math.cos(2*t),0,0],px,py);
+// 等長変換 f を、0→1 で連続に動かす
+function interp(f,s){
+  const det=f[0]*f[3]-f[1]*f[2];
+  if(det>0){const th=Math.atan2(f[1],f[0]);if(Math.abs(th)<1e-7)return T(s*f[4],s*f[5]);
+    const A=[1-f[0],-f[1],-f[2],1-f[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*f[4]-A[2]*f[5])/dt,cy=(-A[1]*f[4]+A[0]*f[5])/dt;return R(s*th,cx,cy);}
+  let d=[f[0]+1,f[1]];if(Math.hypot(...d)<1e-6)d=[f[2],f[3]+1];const l=Math.hypot(...d);d=[d[0]/l,d[1]/l];const nn=[-d[1],d[0]];
+  const t=[f[4],f[5]],Lt=[f[0]*t[0]+f[2]*t[1],f[1]*t[0]+f[3]*t[1]],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],q=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4];
+  const k=1-2*s,P=[d[0]*d[0]+k*nn[0]*nn[0],d[0]*d[1]+k*nn[0]*nn[1],d[0]*d[1]+k*nn[0]*nn[1],d[1]*d[1]+k*nn[1]*nn[1]];
+  return[P[0],P[1],P[2],P[3],q[0]-P[0]*q[0]-P[2]*q[1]+s*g[0],q[1]-P[1]*q[0]-P[3]*q[1]+s*g[1]];
+}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+/* 見本のグリフ「F」：どの向きにも対称性がない形 */
+const FPOLY=[[-.3,-.5],[.36,-.5],[.36,-.28],[-.08,-.28],[-.08,-.1],[.24,-.1],[.24,.11],[-.08,.11],[-.08,.5],[-.3,.5]];
+function motif(m,color,alpha=1,outline=false){ctx.save();ctx.transform(...m);ctx.beginPath();FPOLY.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();
+  ctx.globalAlpha=alpha;if(outline){ctx.setLineDash([.06,.05]);ctx.lineWidth=.035;ctx.strokeStyle=color;ctx.stroke();}else{ctx.fillStyle=color;ctx.fill();}ctx.restore();}
+function letter(m,ch,color,alpha=1,size=1){ctx.save();ctx.transform(...m);ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.font=`${size}px "Dela Gothic One","Zen Kaku Gothic New",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,0,.04*size);ctx.restore();}
+function dot(x,y,r,color){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+function line(x0,y0,x1,y1,color,w,dash){ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.strokeStyle=color;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.stroke();ctx.setLineDash([]);}
+function arrow(x0,y0,x1,y1,color,w){line(x0,y0,x1,y1,color,w);const a=Math.atan2(y1-y0,x1-x0),h=w*5;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x1-h*Math.cos(a-.45),y1-h*Math.sin(a-.45));ctx.lineTo(x1-h*Math.cos(a+.45),y1-h*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=color;ctx.fill();}
+function rotMark(x,y,n,r,color){ctx.beginPath();if(n===2)ctx.ellipse(x,y,r*1.3,r*.62,0,0,Math.PI*2);else for(let i=0;i<n;i++){const t=-Math.PI/2+2*Math.PI*i/n;i?ctx.lineTo(x+r*Math.cos(t),y+r*Math.sin(t)):ctx.moveTo(x+r*Math.cos(t),y+r*Math.sin(t));}
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=r*.25;ctx.stroke();}
+
+/* ---------- 群で敷き詰める ---------- */
+const FR_A=1.25;
+function Gobj(name){const g=GROUPS[name];if(g.kind==='frieze')return{name,cat:'frieze',a:FR_A,b:1,gamma:90,theta:0,ox:0,oy:0};const L=REPLAT[g.lat];return{name,cat:'wall',a:L.a,b:L.b,gamma:L.gamma,theta:0,ox:0,oy:0};}
+// 帯の見本の置き方（分数 x、世界 y、大きさ）
+const FRM={p111:[.5,0,.55],p1a1:[.25,.36,.48],pm11:[.25,0,.5],p1m1:[.5,.36,.48],p112:[.25,.34,.48],pma2:[.125,.36,.36],pmm2:[.25,.36,.44]};
+// 基本の見本の位置（Γ の基本領域の中に収まるように）
+function baseMotif(name){const G=Gobj(name),B=basis(G);
+  if(G.cat==='frieze'){const[u,y,s]=FRM[name];return[s,0,0,s,u*FR_A,y];}
+  const P=AUREG[name].map(p=>ap(B,p[0],p[1])),c=[P.reduce((s,p)=>s+p[0],0)/P.length,P.reduce((s,p)=>s+p[1],0)/P.length];
+  let r=1e9;P.forEach((a,i)=>{const b=P[(i+1)%P.length],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);r=Math.min(r,Math.abs((c[0]-a[0])*dy-(c[1]-a[1])*dx)/L);});
+  const s=Math.min(r*1.55,.42);return[s,0,0,s,c[0],c[1]];}
+// 見える範囲のコピーを列挙
+function copies(name,rect,base){const G=Gobj(name),B=basis(G),Bi=inv(B),cs=cosets(G),fr=G.cat==='frieze',out=[];
+  let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const[x,y]of[[rect.x0,rect.y0],[rect.x1,rect.y0],[rect.x0,rect.y1],[rect.x1,rect.y1]]){const q=ap(Bi,x,y);u0=Math.min(u0,q[0]);u1=Math.max(u1,q[0]);v0=Math.min(v0,q[1]);v1=Math.max(v1,q[1]);}
+  u0=Math.floor(u0)-2;u1=Math.ceil(u1)+2;v0=fr?0:Math.floor(v0)-2;v1=fr?0:Math.ceil(v1)+2;
+  cs.forEach((w,i)=>{for(let m=u0;m<=u1;m++)for(let n=v0;n<=v1;n++){const t=[m*B[0]+n*B[2],m*B[1]+n*B[3]];out.push({m:mul(T(t[0],t[1]),mul(w,base)),i,mn:[m,n]});}});
+  return{out,B,Bi,u0,u1,v0,v1,G};}
+// 対称要素（回転の中心・鏡映軸・映進軸）
+function drawElements(name,rect,opt={}){
+  const G=Gobj(name),B=basis(G),Bi=inv(B),O=GROUPS[name].ops,fr=G.cat==='frieze';
+  const pure=O.filter(o=>Math.abs(o[0]-1)<1e-9&&Math.abs(o[3]-1)<1e-9&&Math.abs(o[1])<1e-9&&Math.abs(o[2])<1e-9).map(o=>[o[4],o[5]]);
+  const inLat=g=>{const q=ap([Bi[0],Bi[1],Bi[2],Bi[3],0,0],g[0],g[1]);return pure.some(p=>{const a=q[0]-p[0],b=q[1]-p[1];return Math.abs(a-Math.round(a))<1e-6&&(fr?Math.abs(b)<1e-6:Math.abs(b-Math.round(b))<1e-6);});};
+  let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;for(const[x,y]of[[rect.x0,rect.y0],[rect.x1,rect.y0],[rect.x0,rect.y1],[rect.x1,rect.y1]]){const q=ap(Bi,x,y);u0=Math.min(u0,q[0]);u1=Math.max(u1,q[0]);v0=Math.min(v0,q[1]);v1=Math.max(v1,q[1]);}
+  u0=Math.floor(u0)-1;u1=Math.ceil(u1)+1;v0=fr?0:Math.floor(v0)-1;v1=fr?0:Math.ceil(v1)+1;
+  const rots=new Map(),lines=new Map(),L=Math.hypot(rect.x1-rect.x0,rect.y1-rect.y0)*2,px=PX();
+  for(const o of O)for(let m=u0;m<=u1;m++)for(let n=v0;n<=v1;n++){
+    const e=o.slice();e[4]+=m;e[5]+=n;const w=mul(B,mul(e,Bi)),det=w[0]*w[3]-w[1]*w[2];
+    if(det>0){const th=Math.atan2(w[1],w[0]);if(Math.abs(th)<1e-6)continue;
+      const A=[1-w[0],-w[1],-w[2],1-w[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*w[4]-A[2]*w[5])/dt,cy=(-A[1]*w[4]+A[0]*w[5])/dt;
+      if(cx<rect.x0-1||cx>rect.x1+1||cy<rect.y0-1||cy>rect.y1+1)continue;
+      const k=Math.round(cx*1e4)+','+Math.round(cy*1e4),nn=Math.round(2*Math.PI/Math.abs(th));rots.set(k,{x:cx,y:cy,n:Math.max(nn,(rots.get(k)||{n:0}).n)});}
+    else{let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];const l=Math.hypot(...d);d=[d[0]/l,d[1]/l];
+      const t=[w[4],w[5]],Lt=[w[0]*t[0]+w[2]*t[1],w[1]*t[0]+w[3]*t[1]],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2],q=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4];
+      const mir=Math.hypot(...g)<1e-6;if(!mir&&inLat(g))continue;
+      const off=-d[1]*q[0]+d[0]*q[1],k=(mir?'m':'g')+Math.round(Math.atan2(d[1],d[0])*1e3%3142)+','+Math.round(off*1e4);
+      if(!lines.has(k))lines.set(k,{q,d,g,mir});}}
+  for(const l of lines.values()){const{q,d}=l;
+    if(l.mir)line(q[0]-d[0]*L,q[1]-d[1]*L,q[0]+d[0]*L,q[1]+d[1]*L,COL.el,px*2.4);
+    else{line(q[0]-d[0]*L,q[1]-d[1]*L,q[0]+d[0]*L,q[1]+d[1]*L,COL.el,px*2,[px*9,px*6]);}}
+  for(const r of rots.values())rotMark(r.x,r.y,r.n,px*9,COL.el);
+}
+
+/* ---------- 内包：G=p1 で敷き詰め、Γ が最終の模様 ---------- */
+function regionsWithOps(name){const set=[0],O=GROUPS[name].ops,A=AUREG[name],cls=cosetClasses(name,set),key=p=>p.map(v=>Math.round(v*1e5)).join(',');
+  const cen=P=>[P.reduce((s,p)=>s+p[0],0)/P.length,P.reduce((s,p)=>s+p[1],0)/P.length];
+  const shares=(P,Q)=>{const s=new Set(Q.map(key));return P.filter(p=>s.has(key(p))).length>=2;};
+  const pieces=[{P:A,i:0,m:0,n:0}],done=new Set([cls[0]]),c0=cen(A),nC=Math.max(...cls)+1;
+  for(let guard=0;done.size<nC&&guard<nC*2;guard++){let best=null;
+    O.forEach((o,i)=>{if(done.has(cls[i]))return;for(let m=-2;m<=2;m++)for(let n=-2;n<=2;n++){
+      const P=A.map(p=>{const r=ap(o,p[0],p[1]);return[r[0]+m,r[1]+n];});if(!pieces.some(Q=>shares(P,Q.P)))continue;
+      const c=cen(P),d=Math.hypot(c[0]-c0[0],c[1]-c0[1]);if(!best||d<best.d-1e-9)best={P,d,c:cls[i],i,m,n};}});
+    if(!best)break;pieces.push(best);done.add(best.c);}
+  // 外周の辺
+  const cnt=new Map(),edges=[];for(const pc of pieces)pc.P.forEach((a,k)=>{const b=pc.P[(k+1)%pc.P.length],kk=[key(a),key(b)].sort().join('|');cnt.set(kk,(cnt.get(kk)||0)+1);edges.push([a,b,kk]);});
+  return{au:A,pieces,outline:edges.filter(e=>cnt.get(e[2])===1).map(e=>[e[0],e[1]])};}
+
+/* ---------- スライド ---------- */
+const UI={};
+function btn(label,on,opts={}){const b=document.createElement('button');b.className='btn';b.type='button';b.textContent=label;if(opts.pressed!==undefined)b.setAttribute('aria-pressed',opts.pressed);if(opts.id)b.id=opts.id;b.onclick=on;return b;}
+function seg(items,cur,on){const wrap=document.createDocumentFragment(),bs=[];items.forEach(([v,l])=>{const b=btn(l,()=>{bs.forEach(x=>x.setAttribute('aria-pressed',x===b));on(v);},{pressed:v===cur});bs.push(b);wrap.appendChild(b);});return wrap;}
+function check(label,val,on){const l=document.createElement('label'),i=document.createElement('input');i.type='checkbox';i.checked=val;i.onchange=()=>on(i.checked);l.append(i,label);return l;}
+function sep(){const d=document.createElement('span');d.className='sep';return d;}
+function cap(t){const c=$('#cap');c.hidden=!t;c.textContent=t||'';}
+// アニメーション
+let anim=null;
+function play(dur,onStep,onEnd){const t0=performance.now();anim={t0,dur,onStep,onEnd};loop();}
+function loop(){if(!anim)return;const s=Math.min(1,(performance.now()-anim.t0)/anim.dur);anim.onStep(ease(s));draw();if(s<1)requestAnimationFrame(loop);else{const e=anim.onEnd;anim=null;e&&e();draw();}}
+let idleRAF=null;
+
+const SL=[];
+
+/* 1 表紙 */
+SL.push({eyebrow:'はじめに',title:'敷詰アンビグラム入門',
+  lead:'グリフを規則正しく敷き詰めた<b>模様全体</b>で、2つの読みを成り立たせるアンビグラムです。今日は「動かして重ねる」ところから、少しずつ積み上げます。',
+  notes:['今日の流れ：動かし方 → 敷き詰め → 敷詰アンビの定義 → 対称性の名前 → 群の内包 → 実作','数学の言葉は出てくるけど、全部「図で確かめられること」だけ','右の図は完成形のイメージ（p4g の模様）。最後にこういう模様が読めるようになる'],
+  view(){setView(0,0,4.2)},
+  draw(){const r=viewRect(),c=copies('p4g',r,baseMotif('p4g'));for(const k of c.out)motif(k.m,PAL[k.i%4],.85);}});
+
+/* 2 アンビグラム＝動かして重なる */
+SL.push({eyebrow:'第1回　ふつうのアンビグラム',title:'動かすと、別の字に重なる',
+  lead:'回転型や鏡像型のアンビグラムは、ある<b>動かし方 f</b> で、字 A がそのまま字 B に重なるもの、と言い直せます。',
+  formula:'<span class="ca">A</span> を f で動かす ＝ <span class="cb">B</span>',
+  notes:['b を 180° 回すと q、左右に裏返すと d、上下に裏返すと p','アンビグラムの「回転型」「鏡像型」は、この f の種類の違いだけ','ポイント：f は「形を変えない動かし方」。伸ばしたり曲げたりはしない'],
+  st:{f:'rot',s:0},
+  view(){setView(0,0,3.2)},
+  controls(){const st=this.st,go=k=>{st.f=k;st.s=0;play(1100,s=>{st.s=s;});};
+    return[btn('180° 回転',()=>go('rot')),btn('左右に裏返す',()=>go('mx')),btn('上下に裏返す',()=>go('my')),sep(),btn('元に戻す',()=>{st.s=0;draw();})];},
+  fm(){const k=this.st.f;return k==='rot'?R(Math.PI):k==='mx'?M(Math.PI/2,0,0):M(0,0,0);},
+  draw(){const st=this.st,f=this.fm(),res={rot:'q',mx:'d',my:'p'}[st.f];
+    letter(S_(1),'b',COL.ink,.12,2);
+    letter(interp(f,st.s),'b',st.s>.98?COL.b:COL.a,1,2);
+    const px=PX();if(st.f==='rot')dot(0,0,px*6,COL.el);else if(st.f==='mx')line(0,-1.4,0,1.4,COL.el,px*2.4);else line(-1.4,0,1.4,0,COL.el,px*2.4);
+    cap(st.s>.98?`b → ${res}`:'b');}});
+
+/* 3 動かし方は4種類 */
+SL.push({eyebrow:'第1回　ふつうのアンビグラム',title:'形を変えない動かし方は4種類',
+  lead:'平面の上で形を変えずに動かす方法（<b>等長変換</b>）は、並進・回転・鏡映・映進の4つしかありません。敷詰アンビでは、この4つを全部使います。',
+  notes:['並進＝ずらす、回転＝ある点の周りに回す、鏡映＝ある直線で裏返す','映進は「裏返してから、その線に沿ってずらす」。足跡のイメージ','トレーシングペーパーで実演すると伝わりやすい（裏返すのが鏡映）','どの等長変換も、この4つのどれかになる（これは定理）'],
+  st:{k:'t',s:0},
+  view(){setView(1.1,0,3.6)},
+  F(){return{t:T(2.3,0),r:R(Math.PI*2/3,1.25,.25),m:M(Math.PI/2,1.15,0),g:mul(T(2.3,0),M(0,0,.9))}[this.st.k];},
+  controls(){const st=this.st,go=k=>{st.k=k;st.s=0;play(1300,s=>{st.s=s;});};
+    return[seg([['t','並進'],['r','回転'],['m','鏡映'],['g','映進']],'t',go),sep(),btn('もう一度',()=>go(st.k))];},
+  draw(){const st=this.st,f=this.F(),px=PX(),base=S_(.9);
+    motif(base,COL.ink,.14);
+    if(st.k==='t')arrow(.1,.85,2.2,.85,COL.el,px*2.4);
+    if(st.k==='r'){dot(1.25,.25,px*7,COL.el);ctx.beginPath();ctx.arc(1.25,.25,.75,Math.PI,Math.PI+Math.PI*2/3*st.s,false);ctx.strokeStyle=COL.el;ctx.lineWidth=px*2;ctx.setLineDash([px*6,px*5]);ctx.stroke();ctx.setLineDash([]);}
+    if(st.k==='m')line(1.15,-1.5,1.15,1.5,COL.el,px*2.4);
+    if(st.k==='g'){line(-1,.9,3.6,.9,COL.el,px*2.2,[px*10,px*6]);arrow(.3,1.25,2.1,1.25,COL.el,px*2);}
+    motif(mul(interp(f,st.s),base),COL.a);
+    cap({t:'並進：ずらす',r:'回転：点の周りに回す',m:'鏡映：直線で裏返す',g:'映進：裏返して、軸に沿ってずらす'}[st.k]);}});
+
+/* 4 敷き詰める */
+SL.push({eyebrow:'第2回　敷き詰める',title:'同じグリフを、規則正しく並べる',
+  lead:'グリフを並進で繰り返し並べると、帯や平面いっぱいの<b>模様</b>になります。敷詰アンビでは、1文字ではなく、この模様全体を作品として見ます。',
+  notes:['まずは帯（一方向にだけ繰り返す）。次に平面（二方向に繰り返す）','「どこまでも続いている」と考えるのがコツ。画面に見えているのはその一部','並べ方の規則（どう動かして並べるか）を、あとで「群」と呼ぶ'],
+  st:{mode:'strip',k:99},
+  view(){setView(0,0,4.4)},
+  controls(){const st=this.st,go=()=>{st.k=0;play(1800,s=>{st.k=s*14;});};
+    return[seg([['strip','帯'],['plane','平面']],'strip',v=>{st.mode=v;go();}),sep(),btn('並べ直す',go)];},
+  draw(){const st=this.st,r=viewRect(),base=S_(.62);const items=[];
+    if(st.mode==='strip'){for(let m=-6;m<=6;m++)items.push({m:mul(T(m*.95,0),base),d:Math.abs(m)});}
+    else{const e1=[.95,0],e2=[.32,.9];for(let m=-7;m<=7;m++)for(let n=-5;n<=5;n++){const x=m*e1[0]+n*e2[0],y=n*e2[1];if(x<r.x0-1||x>r.x1+1||y<r.y0-1||y>r.y1+1)continue;items.push({m:mul(T(x,y),base),d:Math.max(Math.abs(m),Math.abs(n))});}}
+    for(const it of items){const a=Math.max(0,Math.min(1,st.k-it.d*.9));if(a>0)motif(it.m,it.d===0?COL.a:COL.ink,it.d===0?1:a*.8);}
+    cap(st.mode==='strip'?'帯：一方向の並進で繰り返す':'平面：二方向の並進で繰り返す');}});
+
+/* 5 定義 */
+SL.push({eyebrow:'第2回　敷き詰める',title:'敷詰アンビグラムとは',
+  lead:'字 A を敷き詰めた模様を f で動かすと、字 B を敷き詰めた模様にぴったり重なる。これが敷詰アンビです。',
+  formula:'f（<span class="ca">A の模様</span>）＝ <span class="cb">B の模様</span>',
+  notes:['ここでは b を並べた帯を 180° 回すと、q を並べた帯になる','1文字どうしの関係ではなく「模様どうし」の関係として言うのがポイント','f の回転の中心は、帯の中のどこに取ってもよいわけではない（重なる場所でないとダメ）'],
+  st:{s:0},
+  view(){setView(0,0,4)},
+  controls(){const st=this.st;return[btn('f で動かす（180° 回転）',()=>{st.s=0;play(1500,s=>{st.s=s;});}),btn('元に戻す',()=>{st.s=0;draw();})];},
+  draw(){const st=this.st,f=interp(R(Math.PI,.55,0),st.s),px=PX();
+    for(let m=-5;m<=5;m++)letter(T(m*1.1,0),'b',COL.ink,.1,1.5);
+    for(let m=-5;m<=5;m++)letter(mul(f,T(m*1.1,0)),'b',st.s>.98?COL.b:COL.a,1,1.5);
+    dot(.55,0,px*6,COL.el);cap(st.s>.98?'q の模様になった':'b の模様');}});
+
+/* 6 区切り方 */
+SL.push({eyebrow:'第2回　敷き詰める',title:'区切り方を変えると、別の字になる',
+  lead:'同じ模様でも、どこで1文字分を区切るかで読める字が変わります。グリフの境目は自由に決めてよい。これが単体のアンビグラムより<b>自由度が高い</b>理由です。',
+  notes:['輪がつながった帯。輪ごとに区切ると O、輪と輪のつなぎ目で区切ると X に見える','1文字だけ取り出すと O と X は全く別の形。でも並べると同じ模様','実際の敷詰アンビでは、この「区切りの自由」と f を組み合わせる','（この例は f を使わない、区切りだけの例。分類での呼び方は補足してください）'],
+  st:{cut:'A'},
+  view(){setView(0,0,3.6)},
+  controls(){const st=this.st;return[seg([['A','O で区切る'],['B','X で区切る']],'A',v=>{st.cut=v;draw();})];},
+  draw(){const st=this.st,px=PX(),w=1,rx=.5,ry=.78,lw=.13;
+    const cutX=st.cut==='A'?0:.5,col=st.cut==='A'?COL.a:COL.b;
+    // 区切り
+    ctx.fillStyle=st.cut==='A'?'rgba(43,90,200,.10)':'rgba(222,95,25,.12)';ctx.fillRect(cutX-.5,-1.05,1,2.1);
+    for(let k=-6;k<=6;k++){const x=cutX-.5+k;line(x,-1.05,x,1.05,col,px*1.6,[px*7,px*5]);}
+    for(let k=-6;k<=6;k++){ctx.beginPath();ctx.ellipse(k*w,0,rx-lw/2,ry,0,0,Math.PI*2);ctx.strokeStyle=COL.ink;ctx.lineWidth=lw;ctx.stroke();}
+    // 1つ分を強調
+    ctx.save();ctx.beginPath();ctx.rect(cutX-.5,-1.05,1,2.1);ctx.clip();for(let k=-1;k<=1;k++){ctx.beginPath();ctx.ellipse(k*w,0,rx-lw/2,ry,0,0,Math.PI*2);ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.stroke();}ctx.restore();
+    cap(st.cut==='A'?'1文字分 ＝ O':'1文字分 ＝ X');}});
+
+/* 7 環状敷詰 */
+SL.push({eyebrow:'第3回　環状敷詰',title:'中心の周りに n 個並べる',
+  lead:'中心の周りに回転で n 個並べたものが <b>Cn</b>、さらに鏡映の軸も持つものが <b>Dn</b> です。数が有限なので、対称性を数える練習に向いています。',
+  notes:['C は回転だけ（Cyclic）、D は回転＋鏡映（Dihedral）','Dn では鏡映軸が n 本。グリフが軸をまたがないように置く','たとえば C2 は 180° 回転型のアンビグラムと同じ形'],
+  st:{n:4,d:false},
+  view(){setView(0,0,4.6)},
+  controls(){const st=this.st,l=document.createElement('label'),i=document.createElement('input');i.type='range';i.min=2;i.max=8;i.value=st.n;i.id='nRange';
+    const o=document.createElement('output');o.textContent=st.n;i.oninput=()=>{st.n=+i.value;o.textContent=st.n;draw();};l.append('n',i,o);
+    return[l,sep(),seg([['C','Cn'],['D','Dn']],'C',v=>{st.d=v==='D';draw();})];},
+  draw(){const st=this.st,n=st.n,px=PX(),a0=st.d?Math.PI/(2*n):0,base=mul(R(a0),mul(T(0,-1.25),S_(.62)));
+    if(st.d)for(let k=0;k<n;k++){const t=-Math.PI/2+Math.PI*k/n;line(-3*Math.cos(t),-3*Math.sin(t),3*Math.cos(t),3*Math.sin(t),COL.el,px*2.2);}
+    for(let k=0;k<n;k++){motif(mul(R(2*Math.PI*k/n),base),PAL[0]);if(st.d)motif(mul(M(-Math.PI/2+Math.PI*0/n+2*Math.PI*k/n,0,0),base),PAL[1]);}
+    rotMark(0,0,n,px*10,COL.el);cap(`${st.d?'D':'C'}${n}：${st.d?`回転 ${n} 個＋鏡映 ${n} 本`:`回転 ${n} 個`}`);}});
+
+/* 8 帯模様7種 */
+const FRN=[['p111','p111'],['p1a1','p1a1'],['pm11','pm11'],['p1m1','p1m1'],['p112','p112'],['pma2','pma2'],['pmm2','pmm2']];
+const FRDESC={p111:'並進だけ',p1a1:'映進',pm11:'縦の鏡映',p1m1:'横の鏡映（帯の中心線）',p112:'180° 回転',pma2:'縦の鏡映＋映進（＋回転）',pmm2:'縦と横の鏡映（＋回転）'};
+SL.push({eyebrow:'第4回　帯の模様',title:'帯の模様は7種類しかない',
+  lead:'帯の模様を、それ自身に重ねる動かし方の組み合わせで分けると、ちょうど<b>7種類</b>になります。赤い記号がその動かし方の場所です。',
+  notes:['記号の読み方：p の次の3文字が「縦の鏡映／横の鏡映・映進／回転」を表す（1 は「なし」）','楕円＝180° 回転の中心、実線＝鏡映軸、破線＝映進軸','どれも、見本の F が向きを変えて並ぶ様子で見分けられる','全部覚える必要はない。次のクイズで「探す目」を育てる'],
+  st:{g:'p111',el:true},
+  view(){setStrip()},
+  controls(){const st=this.st;return[seg(FRN,'p111',v=>{st.g=v;draw();}),sep(),check('記号を表示',true,v=>{st.el=v;draw();})];},
+  draw(){const st=this.st,r=viewRect(),c=copies(st.g,r,baseMotif(st.g));line(r.x0,0,r.x1,0,COL.grid,PX());
+    for(const k of c.out)motif(k.m,PAL[GROUPS[st.g].ops.length>1&&k.i?1:0],.95);
+    if(st.el)drawElements(st.g,r);cap(`${st.g}：${FRDESC[st.g]}`);}});
+
+/* 9 クイズ */
+SL.push({eyebrow:'第4回　帯の模様',title:'この帯は、どの種類？',
+  lead:'模様をよく見て、自分自身に重なる動かし方を探してください。トレーシングペーパーで写して、回したり裏返したりしてもかまいません。',
+  notes:['答えを押すと記号が出る','ヒントの順番：①裏返さずに重なる向き（回転）はある？②縦の線で裏返せる？③帯の中心線で裏返せる（鏡映）か、裏返してずらす（映進）か','色は使わず、全部同じ色で出題される'],
+  st:{g:null,ans:null,n:0,ok:0},
+  view(){setStrip()},
+  next(){const st=this.st;let g;do{g=FRN[Math.floor(Math.random()*7)][0];}while(g===st.g);st.g=g;st.ans=null;},
+  enter(){if(!this.st.g)this.next();},
+  controls(){const st=this.st,box=document.createElement('span');box.style.display='contents';
+    const v=document.createElement('span');v.className='verdict';v.id='verdict';
+    const upd=()=>{v.textContent=st.ans?(st.ans===st.g?`正解！ ${st.g}`:`ちがいます。正解は ${st.g}`):'';v.className='verdict '+(st.ans?(st.ans===st.g?'ok':'ng'):'');};
+    const bs=FRN.map(([g])=>btn(g,()=>{if(st.ans)return;st.ans=g;st.n++;if(g===st.g)st.ok++;upd();sc.textContent=`${st.ok} / ${st.n}`;draw();}));
+    const sc=document.createElement('span');sc.className='count';sc.textContent=`${st.ok} / ${st.n}`;
+    upd();return[...bs,sep(),btn('次の問題',()=>{this.next();upd();draw();}),v,sc];},
+  draw(){const st=this.st,r=viewRect(),c=copies(st.g,r,baseMotif(st.g));line(r.x0,0,r.x1,0,COL.grid,PX());
+    for(const k of c.out)motif(k.m,COL.ink,.9);if(st.ans)drawElements(st.g,r);cap(st.ans?`${st.g}：${FRDESC[st.g]}`:'');}});
+
+/* 10・11 内包 */
+const INCL_G=[['p2','p2'],['pm','pm'],['pg','pg'],['p4','p4']];
+function inclSlide(cfg){return{...cfg,
+  st:{g:'p2',fi:0,showA:true,showB:cfg.unit?false:true,unit:!!cfg.unit,s:-1,el:false,du:.3,dv:.25},
+  view(){const G=Gobj(this.st.g),B=basis(G),c=ap(B,.5,.5);setView(c[0],c[1],2.9);},
+  info(){const st=this.st,fc=fCands(st.g,[0]).filter(f=>f.kind!=='trans');st.fi=Math.min(st.fi,fc.length-1);
+    const G=Gobj(st.g),B=basis(G),Bi=inv(B),f=fc[st.fi],fw=mul(B,mul(f.e,Bi));return{fc,f,fw,B,Bi,G,reg:regionsWithOps(st.g)};},
+  controls(){const st=this.st,me=this,fl=document.createElement('span');fl.style.display='contents';
+    const fillF=()=>{fl.innerHTML='';if(cfg.unit)return;const{fc}=me.info();fl.append(sep(),seg(fc.map((f,i)=>[i,'f：'+f.label]),st.fi,v=>{st.fi=v;st.s=-1;draw();}));};
+    const out=[seg(INCL_G,st.g,v=>{st.g=v;st.fi=0;st.s=-1;me.view();fillF();draw();})];
+    if(cfg.unit){out.push(sep(),check('単位格子（G）',true,v=>{st.cell=v;draw();}),check('Γ の単位領域',true,v=>{st.au=v;draw();}),check('G の単位領域',true,v=>{st.gr=v;draw();}),btn('Γ の変換で増やす',()=>{st.s=0;play(1600,s=>{st.s=s;},()=>{st.s=-1;});}));st.cell=st.au=st.gr=true;}
+    else{const sl=(lab,k)=>{const l=document.createElement('label'),i=document.createElement('input');i.type='range';i.min=0;i.max=1;i.step=.01;i.value=st[k];i.id='cut'+k;i.oninput=()=>{st[k]=+i.value;st.s=-1;draw();};l.append(lab,i);return l;};
+      out.push(sep(),sl('区切り 横',  'du'),sl('縦','dv'));}
+    if(!cfg.unit)out.push(sep(),check('A の区切り',true,v=>{st.showA=v;draw();}),check('B の区切り',true,v=>{st.showB=v;draw();}),check('記号',false,v=>{st.el=v;draw();}),btn('f で写す',()=>{st.s=0;play(1600,s=>{st.s=s;},()=>{st.s=1;});}));
+    out.push(fl);fillF();return out;},
+  draw(){const st=this.st,{f,fw,B,reg}=this.info(),r=viewRect(),base=baseMotif(st.g),c=copies(st.g,r,base),px=PX();
+    const W=p=>ap(B,p[0],p[1]),path=P=>{ctx.beginPath();P.forEach((p,k)=>{const q=W(p);k?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);});ctx.closePath();};
+    const outlineAt=(m,col,dash,w)=>{ctx.save();ctx.transform(...m);for(const[a,b]of reg.outline){const p=W(a),q=W(b);line(p[0],p[1],q[0],q[1],col,w,dash);}ctx.restore();};
+    const lat=(fn)=>{for(let m=c.u0;m<=c.u1;m++)for(let n=c.v0;n<=c.v1;n++)fn(T(m*B[0]+n*B[2],m*B[1]+n*B[3]));};
+    if(cfg.unit){
+      if(st.cell){lat(t=>{ctx.save();ctx.transform(...t);path([[0,0],[1,0],[1,1],[0,1]]);ctx.strokeStyle=COL.grid;ctx.lineWidth=px*1.5;ctx.stroke();ctx.restore();});}
+      for(const k of c.out)motif(k.m,PAL[k.i],.28);
+      if(st.gr){ctx.fillStyle='rgba(43,90,200,.12)';for(const pc of reg.pieces){path(pc.P);ctx.fill();}outlineAt(T(0,0),COL.a,[px*8,px*5],px*2.6);}
+      // Γ の単位領域と、その中の見本
+      const show=st.s<0?reg.pieces.length:Math.min(reg.pieces.length,1+Math.floor(st.s*reg.pieces.length*1.02));
+      reg.pieces.slice(0,show).forEach((pc,j)=>{const O=GROUPS[st.g].ops[pc.i],w=mul(T(pc.m*B[0]+pc.n*B[2],pc.m*B[1]+pc.n*B[3]),mul(B,mul(O,inv(B))));motif(mul(w,base),PAL[pc.i]);
+        if(j===0&&st.au){path(pc.P);ctx.fillStyle='rgba(232,110,40,.22)';ctx.fill();ctx.strokeStyle=COL.b;ctx.lineWidth=px*3;ctx.stroke();}});
+      cap(`G の単位領域 ＝ Γ の単位領域 × ${reg.pieces.length}（指数 ${reg.pieces.length}）`);return;}
+    for(const k of c.out)motif(k.m,PAL[k.i],.9);
+    const D=T(st.du*B[0]+st.dv*B[2],st.du*B[1]+st.dv*B[3]),fD=mul(fw,D);
+    if(st.showA)lat(t=>outlineAt(mul(t,D),COL.a,[px*8,px*5],px*2.2));
+    if(st.showB)lat(t=>outlineAt(mul(t,fD),COL.b,null,px*2.2));
+    if(st.el)drawElements(st.g,r);
+    // 1文字分の A を強調し、f で写す
+    ctx.save();ctx.transform(...D);ctx.fillStyle='rgba(43,90,200,.16)';for(const pc of reg.pieces){path(pc.P);ctx.fill();}ctx.restore();
+    if(st.s>=0){const m=mul(interp(fw,st.s),D);ctx.save();ctx.transform(...m);ctx.fillStyle=st.s>.98?'rgba(222,95,25,.28)':'rgba(43,90,200,.28)';for(const pc of reg.pieces){path(pc.P);ctx.fill();}ctx.restore();
+      outlineAt(m,st.s>.98?COL.b:COL.a,null,px*3.4);}
+    // f の場所
+    drawFMark(fw,f,px,r);
+    cap(`p1敷詰${st.g}同一型　f：${f.label}`);}};}
+function drawFMark(w,f,px,r){const L=Math.hypot(r.x1-r.x0,r.y1-r.y0)*2;
+  if(f.kind==='rot'){const A=[1-w[0],-w[1],-w[2],1-w[3]],dt=A[0]*A[3]-A[1]*A[2],cx=(A[3]*w[4]-A[2]*w[5])/dt,cy=(-A[1]*w[4]+A[0]*w[5])/dt;rotMark(cx,cy,f.n,px*11,COL.el);}
+  else{let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];const l=Math.hypot(...d);d=[d[0]/l,d[1]/l];const t=[w[4],w[5]],Lt=[w[0]*t[0]+w[2]*t[1],w[1]*t[0]+w[3]*t[1]],q=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2];
+    line(q[0]-d[0]*L,q[1]-d[1]*L,q[0]+d[0]*L,q[1]+d[1]*L,COL.el,px*3,f.kind==='glide'?[px*12,px*7]:null);
+    if(f.kind==='glide')arrow(q[0],q[1],q[0]+g[0],q[1]+g[1],COL.el,px*2.4);}}
+SL.push(inclSlide({eyebrow:'第5回　群の内包',title:'G で敷き詰め、Γ の模様にする',
+  lead:'並進だけで並べた A の模様（<b>G = p1</b>）が、実は 180° 回転などの対称性も持つ模様（<b>Γ</b>）になっていれば、Γ にあって G にない動かし方が f になります。',
+  formula:'<span class="ca">青の破線</span>＝A の区切り　<span class="cb">橙の実線</span>＝B の区切り（＝ f で写した A の区切り）',
+  notes:['描いている模様は1つだけ。区切り方が A 用と B 用の2通りある','青く塗った1マス分がグリフ A。「f で写す」でそれが B の1マス分に移る','区切りのスライダーで A の区切りをずらすと、B の区切りは f に合わせて逆向きに動く。区切りが重ならない位置ほど、A と B で違う形を読ませやすい','f の候補は Γ ごとに複数ある（p2 なら 180° 回転の中心が4種類）。中心を変えると B の区切りが変わる','これを「p1敷詰p2同一型」と呼ぶ（敷詰工房の内包モードと同じ）']}));
+SL.push(inclSlide({unit:true,eyebrow:'第5回　群の内包',title:'単位領域：1文字分の広さ',
+  lead:'<b>Γ の単位領域</b>は、Γ で等価な点を2つ以上含まない最小の領域です。グリフ1つ分（<b>G の単位領域</b>）は、それを指数の枚数だけ集めた広さになります。',
+  notes:['橙の領域だけ描けば、残りは Γ の動かし方で全部決まる','青の領域（G の単位領域）＝グリフ A の1文字分。p2 なら橙2枚分','「Γ の変換で増やす」を押すと、橙の中身が回されたり裏返されたりして青い領域を埋める','つまり「1文字のうち半分を描けば残り半分は自動で決まる」。ここが設計の難しさであり面白さ']}));
+
+/* 12 壁紙模様 */
+const WALL5=[['p1','p1'],['p2','p2'],['pm','pm'],['pg','pg'],['p4','p4']];
+const ALL17=Object.keys(GROUPS).filter(k=>GROUPS[k].kind==='wall');
+SL.push({eyebrow:'第6回　平面の模様',title:'平面の模様は17種類',
+  lead:'平面いっぱいの模様は<b>17種類</b>に分かれます。全部覚えなくて大丈夫です。まずは p1・p2・pm・pg・p4 の5つから。',
+  notes:['p1：並進だけ／p2：180° 回転／pm：鏡映／pg：映進／p4：90° 回転','ひし形・正方形・六角形などの格子の形も、対称性によって決まる','「すべて」を押すと残りの12種も出せる'],
+  st:{g:'p1',el:true,all:false},
+  view(){const G=Gobj(this.st.g),B=basis(G),c=ap(B,.5,.5);setView(c[0],c[1],3.2);},
+  controls(){const st=this.st,me=this,box=document.createElement('span');box.style.display='contents';
+    const fill=()=>{box.innerHTML='';box.append(seg((st.all?ALL17.map(k=>[k,k]):WALL5),st.g,v=>{st.g=v;me.view();draw();}));};fill();
+    return[box,sep(),check('ほかの12種も',false,v=>{st.all=v;if(!v&&!WALL5.some(w=>w[0]===st.g)){st.g='p1';me.view();}fill();draw();}),check('記号を表示',true,v=>{st.el=v;draw();})];},
+  draw(){const st=this.st,r=viewRect(),c=copies(st.g,r,baseMotif(st.g));for(const k of c.out)motif(k.m,PAL[k.i%PAL.length],.9);if(st.el)drawElements(st.g,r);cap(`${st.g}：${GROUPS[st.g].desc}`);}});
+
+/* 13 実作へ */
+SL.push({eyebrow:'第6回　実作',title:'敷詰工房で作ってみる',
+  lead:'ここからは手を動かします。段階を追って、少しずつ難しくしていきましょう。',
+  html:`<ol class="ex"><li><b>課題1</b>O と X のように、区切り方だけで2つの字に読める帯を考える</li><li><b>課題2</b>p1敷詰p2同一型で2文字。f は 180° 回転の中心を1つ選ぶ</li><li><b>課題3</b>p1敷詰pm同一型。鏡映で写る2文字を作る</li><li><b>課題4</b>同じ字の組で、f の候補を変えると何が変わるか比べる</li></ol><p class="lead" id="goShiki" hidden>アプリの一覧から<a class="go" href="./shiki.html">敷詰アンビグラム工房</a>を開き、「群の内包から作る」を選びます。</p>`,
+  notes:['課題2では、まず橙の単位領域だけを意識して描くよう伝える','うまくいかないときは「すべての f を同時に表示」で中心の候補を見比べる','完成したら、記号をオフにして友人に読んでもらうのがいちばんの確認'],
+  view(){setView(0,0,4.2)},
+  draw(){const r=viewRect(),c=copies('p2',r,baseMotif('p2'));for(const k of c.out)motif(k.m,PAL[k.i],.35);}});
+
+/* ---------- 進行 ---------- */
+let cur=0;try{cur=Math.min(SL.length-1,Math.max(0,+(localStorage.getItem('nyumon-cur')||0)));}catch(_){}
+let notesOn=false;try{notesOn=localStorage.getItem('nyumon-notes')==='1';}catch(_){}
+function draw(){const s=SL[cur];resize();clear();world();s.draw&&s.draw();}
+function render(){const s=SL[cur];anim=null;
+  $('#text').innerHTML=`<div class="eyebrow">${s.eyebrow}</div><h1>${s.title}</h1><p class="lead">${s.lead}</p>${s.formula?`<div class="formula">${s.formula}</div>`:''}${s.html||''}`;
+  const gs=$('#goShiki');if(gs)gs.hidden=!/github\.io|localhost|127\.0\.0\.1/.test(location.hostname);
+  $('#noteList').innerHTML=(s.notes||[]).map(n=>`<li>${n}</li>`).join('');$('#notes').hidden=!notesOn;$('#noteBtn').setAttribute('aria-pressed',notesOn);
+  const c=$('#controls');c.innerHTML='';s.enter&&s.enter();if(s.controls)c.append(...s.controls.call(s));c.hidden=!s.controls;
+  $('#count').textContent=`${cur+1} / ${SL.length}`;
+  [...$('#prog').children].forEach((b,i)=>{b.setAttribute('aria-current',i===cur);b.classList.toggle('done',i<cur);});
+  cap('');resize();s.view&&s.view.call(s);draw();
+  try{localStorage.setItem('nyumon-cur',cur);}catch(_){}}
+function go(i){cur=Math.max(0,Math.min(SL.length-1,i));render();}
+$('#prog').innerHTML=SL.map((s,i)=>`<button type="button" title="${i+1}. ${s.title}" aria-label="${i+1}. ${s.title}"></button>`).join('');
+[...$('#prog').children].forEach((b,i)=>b.onclick=()=>go(i));
+$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);
+$('#noteBtn').onclick=()=>{notesOn=!notesOn;try{localStorage.setItem('nyumon-notes',notesOn?'1':'0');}catch(_){}$('#notes').hidden=!notesOn;$('#noteBtn').setAttribute('aria-pressed',notesOn);resize();SL[cur].view&&SL[cur].view.call(SL[cur]);draw();};
+document.addEventListener('keydown',e=>{if(e.target.closest&&e.target.closest('input'))return;if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(cur+1);}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(cur-1);}else if(e.key==='n'||e.key==='N')$('#noteBtn').click();});
+new ResizeObserver(()=>{resize();SL[cur].view&&SL[cur].view.call(SL[cur]);draw();}).observe($('.canvasWrap'));
+render();
+if(document.fonts&&document.fonts.load)document.fonts.load('40px "Dela Gothic One"').then(()=>draw()).catch(()=>{});
+</script>
+
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+</script>
+</body>
+</html>
