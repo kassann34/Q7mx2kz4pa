@@ -103,7 +103,7 @@ a.go{color:var(--accent);font-weight:700}
     <a class="btn ibtn" href="./" title="一覧に戻る" aria-label="一覧に戻る"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 9.5L10 3.5l7 6"/><path d="M5 8.5V16.5h10V8.5"/></svg></a></div>
   <div class="navs">
     <button class="btn icon" id="prev" title="前へ（←）" aria-label="前へ"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4L6.5 10l6 6"/></svg></button>
-    <span class="count" id="count">1 / 13</span>
+    <span class="count" id="count">1 / 11</span>
     <button class="btn icon" id="next" title="次へ（→）" aria-label="次へ"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4l6 6-6 6"/></svg></button>
     <button class="btn" id="noteBtn" aria-pressed="false" title="話す内容のメモ（N）">メモ</button>
   </div>
@@ -440,7 +440,7 @@ const SL=[];
 /* 1 表紙 */
 SL.push({eyebrow:'はじめに',title:'敷詰アンビグラム入門',
   lead:'グリフを規則正しく敷き詰めた<b>模様全体</b>で、2つの読みを成り立たせるアンビグラムです。今日は「動かして重ねる」ところから、少しずつ積み上げます。',
-  notes:['今日の流れ：動かし方 → 敷き詰め → 敷詰アンビの定義 → 対称性の名前 → 群の内包 → 実作','数学の言葉は出てくるけど、全部「図で確かめられること」だけ','右の図は完成形のイメージ（p4g の模様）。最後にこういう模様が読めるようになる'],
+  notes:['今日の流れ：動かし方 → 敷き詰め → 敷詰アンビの定義 → 対称性の名前 → 実作','数学の言葉は出てくるけど、全部「図で確かめられること」だけ','右の図は完成形のイメージ（p4g の模様）。こういう模様の「仕組みの名前」が分かるようになるのが今日の目標'],
   view(){setView(0,0,4.2)},
   draw(){const r=viewRect(),c=copies('p4g',r,baseMotif('p4g'));for(const k of c.out)motif(k.m,PAL[k.i%4],.85);}});
 
@@ -611,18 +611,12 @@ function drawFMark(w,f,px,r){const L=Math.hypot(r.x1-r.x0,r.y1-r.y0)*2;
   else{let d=[w[0]+1,w[1]];if(Math.hypot(...d)<1e-6)d=[w[2],w[3]+1];const l=Math.hypot(...d);d=[d[0]/l,d[1]/l];const t=[w[4],w[5]],Lt=[w[0]*t[0]+w[2]*t[1],w[1]*t[0]+w[3]*t[1]],q=[(t[0]-Lt[0])/4,(t[1]-Lt[1])/4],g=[(t[0]+Lt[0])/2,(t[1]+Lt[1])/2];
     line(q[0]-d[0]*L,q[1]-d[1]*L,q[0]+d[0]*L,q[1]+d[1]*L,COL.el,px*3,f.kind==='glide'?[px*12,px*7]:null);
     if(f.kind==='glide')arrow(q[0],q[1],q[0]+g[0],q[1]+g[1],COL.el,px*2.4);}}
-SL.push(inclSlide({eyebrow:'第5回　群の内包',title:'G で敷き詰め、Γ の模様にする',
-  lead:'並進だけで並べた A の模様（<b>G = p1</b>）が、実は 180° 回転などの対称性も持つ模様（<b>Γ</b>）になっていれば、Γ にあって G にない動かし方が f になります。',
-  formula:'<span class="ca">青の破線</span>＝A の区切り　<span class="cb">橙の実線</span>＝B の区切り（＝ f で写した A の区切り）',
-  notes:['描いている模様は1つだけ。区切り方が A 用と B 用の2通りある','青く塗った1マス分がグリフ A。「f で写す」でそれが B の1マス分に移る','区切りのスライダーで A の区切りをずらすと、B の区切りは f に合わせて逆向きに動く。区切りが重ならない位置ほど、A と B で違う形を読ませやすい','f の候補は Γ ごとに複数ある（p2 なら 180° 回転の中心が4種類）。中心を変えると B の区切りが変わる','これを「p1敷詰p2同一型」と呼ぶ（敷詰工房の内包モードと同じ）']}));
-SL.push(inclSlide({unit:true,eyebrow:'第5回　群の内包',title:'単位領域：1文字分の広さ',
-  lead:'<b>Γ の単位領域</b>は、Γ で等価な点を2つ以上含まない最小の領域です。グリフ1つ分（<b>G の単位領域</b>）は、それを指数の枚数だけ集めた広さになります。',
-  notes:['橙の領域だけ描けば、残りは Γ の動かし方で全部決まる','青の領域（G の単位領域）＝グリフ A の1文字分。p2 なら橙2枚分','「Γ の変換で増やす」を押すと、橙の中身が回されたり裏返されたりして青い領域を埋める','つまり「1文字のうち半分を描けば残り半分は自動で決まる」。ここが設計の難しさであり面白さ']}));
-
+/* 群の内包（発展編で使う。入門では外しておく） */
+const ADV=[];
 /* 12 壁紙模様 */
 const WALL5=[['p1','p1'],['p2','p2'],['pm','pm'],['pg','pg'],['p4','p4']];
 const ALL17=Object.keys(GROUPS).filter(k=>GROUPS[k].kind==='wall');
-SL.push({eyebrow:'第6回　平面の模様',title:'平面の模様は17種類',
+SL.push({eyebrow:'第5回　平面の模様',title:'平面の模様は17種類',
   lead:'平面いっぱいの模様は<b>17種類</b>に分かれます。全部覚えなくて大丈夫です。まずは p1・p2・pm・pg・p4 の5つから。',
   notes:['p1：並進だけ／p2：180° 回転／pm：鏡映／pg：映進／p4：90° 回転','ひし形・正方形・六角形などの格子の形も、対称性によって決まる','「すべて」を押すと残りの12種も出せる'],
   st:{g:'p1',el:true,all:false},
@@ -635,8 +629,8 @@ SL.push({eyebrow:'第6回　平面の模様',title:'平面の模様は17種類',
 /* 13 実作へ */
 SL.push({eyebrow:'第6回　実作',title:'敷詰工房で作ってみる',
   lead:'ここからは手を動かします。段階を追って、少しずつ難しくしていきましょう。',
-  html:`<ol class="ex"><li><b>課題1</b>O と X のように、区切り方だけで2つの字に読める帯を考える</li><li><b>課題2</b>p1敷詰p2同一型で2文字。f は 180° 回転の中心を1つ選ぶ</li><li><b>課題3</b>p1敷詰pm同一型。鏡映で写る2文字を作る</li><li><b>課題4</b>同じ字の組で、f の候補を変えると何が変わるか比べる</li></ol><p class="lead" id="goShiki" hidden>アプリの一覧から<a class="go" href="./shiki.html">敷詰アンビグラム工房</a>を開き、「群の内包から作る」を選びます。</p>`,
-  notes:['課題2では、まず橙の単位領域だけを意識して描くよう伝える','うまくいかないときは「すべての f を同時に表示」で中心の候補を見比べる','完成したら、記号をオフにして友人に読んでもらうのがいちばんの確認'],
+  html:`<ol class="ex"><li><b>課題1</b>O と X のように、区切り方だけで2つの字に読める帯を考える</li><li><b>課題2</b>b と q のように、帯を 180° 回すと別の字の帯になるものを作る</li><li><b>課題3</b>帯を裏返す（鏡映）と別の字になるものを作る</li><li><b>課題4</b>できた作品が、帯の7種類のどれになっているか調べる</li></ol><p class="lead" id="goShiki" hidden>アプリの一覧から<a class="go" href="./shiki.html">敷詰アンビグラム工房</a>を開いて描きます。</p>`,
+  notes:['最初は帯で十分。平面はもう少し慣れてから','課題2・3では、1文字単体で読めなくても、帯として読めればよいことを強調する','完成したら、ほかの人に読んでもらうのがいちばんの確認','仕組み（群の内包、単位領域）は次の段階で扱う'],
   view(){setView(0,0,4.2)},
   draw(){const r=viewRect(),c=copies('p2',r,baseMotif('p2'));for(const k of c.out)motif(k.m,PAL[k.i],.35);}});
 
